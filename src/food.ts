@@ -16,6 +16,7 @@ export class Food {
     private foodInstances: THREE.InstancedMesh = new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), 0);
     private maxInstanceCount = 100;
     private currentInstanceCount = 0;
+    private testTorus = null;
 
     constructor(container: HTMLElement) {
         this.camera.position.set(0, 0, 1);
@@ -24,11 +25,12 @@ export class Food {
         this.renderer.setClearColor(0x000000, 1);
         this.effect.setSize(window.innerWidth, window.innerHeight);
         this.effect.domElement.style.color = 'white';
-        this.effect.domElement.style.backgroundColor = 'RGBA(0,0,255,1)';
+        this.effect.domElement.style.backgroundColor = 'RGBA(0,0,255,0)';
         this.effect.domElement.id = 'ascii';
         this.addEventListeners();
         this.createAnimationLoop();
         this.foodInstances = this.createAllTorusInstances();
+        //this.createTorus(this.scene, this.camera);
         container.appendChild(this.effect.domElement);
     }
 
@@ -65,10 +67,15 @@ export class Food {
         const translationSpeed = 0.002;
 
         const render = (): void => {
+            //this.renderer.clear()
             this.effect.render(this.scene, this.camera);
+            this.renderer.render(this.scene, this.camera);
             requestAnimationFrame(render);
             dummyObject.rotation.y += rotationSpeed;
+
+
             let aliveIndex = 0;
+
             for (let i = 0; i < this.currentInstanceCount; i++) {
                 const foodItem = this.foodPositions[i];
                 foodItem.y += translationSpeed;
@@ -90,6 +97,7 @@ export class Food {
             this.foodInstances.count = aliveIndex;
             this.foodPositions.length = aliveIndex;
             this.foodInstances.instanceMatrix.needsUpdate = true;
+
         };
         requestAnimationFrame(render);
     }
@@ -104,26 +112,34 @@ export class Food {
     }
 
     private createAllTorusInstances = (): THREE.InstancedMesh => {
-        const geometry = new THREE.TorusKnotGeometry(1, 0.1, 128, 64);
-        const material = new THREE.MeshBasicMaterial({ color: 'white' });
+        const geometry = new THREE.TorusKnotGeometry(1, .08, 10, 64);
+        //(1, 0.1, 128, 64);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // ensure vertexColors is true
+        /*
+        material.onBeforeCompile = (shader) => {
+            shader.defines.USE_INSTANCING = ''; // Ensure that the shader knows it's being used for instancing.
+        };
+        */
         const instancedMesh = new THREE.InstancedMesh(geometry, material, this.maxInstanceCount);
+
+        // Assuming -1 in Y is off-screen or a default starting position
         const dummyObject = new THREE.Object3D();
         dummyObject.scale.set(0.03, 0.03, 0.03);
+        dummyObject.position.set(0, 0, 0);
         for (let i = 0; i < this.maxInstanceCount; i++) {
-            dummyObject.position.set(0, -1, 0);
             dummyObject.updateMatrix();
             instancedMesh.setMatrixAt(i, dummyObject.matrix);
         }
+
         instancedMesh.instanceMatrix.needsUpdate = true;
         this.scene.add(instancedMesh);
         return instancedMesh;
     }
-
     private addFood = (xPosition: number): void => {
         if (this.currentInstanceCount < this.maxInstanceCount) {
             const dummyObject = new THREE.Object3D();
             dummyObject.position.set(xPosition, 0, 0);
-            dummyObject.scale.set(0.005, 0.03, 0.005);
+            dummyObject.scale.set(0.05, 0.03, 0.05);
             dummyObject.updateMatrix();
             this.foodInstances.setMatrixAt(this.currentInstanceCount, dummyObject.matrix);
             this.foodPositions.push({ x: xPosition, y: 0 });

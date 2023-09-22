@@ -17,9 +17,9 @@ body {
   left: 0;
   z-index: 100;
   pointer-events: none;
+  color: #fff !important;
 
-  text-shadow:
-    0 0 5px #fff,
+  text-shadow: 0 0 5px #fff,
     0 0 10px #fff,
     0 0 15px #fff,
     0 0 20px #fff,

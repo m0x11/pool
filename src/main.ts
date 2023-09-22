@@ -9,7 +9,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `
 const poolFoundation: HTMLElement | null = document.querySelector('#app');
 if (poolFoundation) {
-  //const reflectingPool = new Pool(poolFoundation);
+  const reflectingPool = new Pool(poolFoundation);
   const food = new Food(poolFoundation);
   //const food = new Food(poolFoundation);
   //const ascii = new Ascii(poolFoundation);
