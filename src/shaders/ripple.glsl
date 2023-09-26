@@ -14,7 +14,7 @@ varying vec2 v_Uvs;
 uniform float u_time;
 uniform sampler2D u_buffer;
 uniform vec2 u_resolution;
-uniform vec3 u_mouse;
+uniform vec3 u_drop;
 uniform int u_frame;
 uniform sampler2D u_environment;
 uniform bool u_simulate;
@@ -126,10 +126,13 @@ vec4 ripple (vec2 uv) {
     vec3 e = vec3(vec2(3.6)/u_resolution.xy,0.);
     vec2 s = gl_FragCoord.xy / u_resolution.xy;
     float ratio = u_resolution.x / u_resolution.y;
-    vec2 mouse = u_mouse.xy - uv;
+    vec2 drop = u_drop.xy - uv;
     vec4 fragcolour = texture2D(u_buffer, s);
     float shade = 0.;
-    shade = smoothstep(.02 + abs(sin(u_time*10.) * .006), .0, length(mouse)); 
+    //shade = smoothstep(.02 + abs(sin(u_time*10.) * .006), .0, length(drop)); 
+    if(u_drop.z == 1.) {
+      shade = smoothstep(.02 + abs(sin(u_time*10.) * .2), .0, length(drop)); 
+    }
     vec4 texcol = fragcolour;
     float d = shade * 2.;
     float t = texture2D(u_buffer, s-e.zy, 1.).x;

@@ -45,6 +45,8 @@ export class Pool {
     private bufferWrite = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
 
     private env = new THREE.TextureLoader().load('src/env/t.png');
+    private newmouse = { x: 0, y: 0, z: 0 };
+    private drop = { x: 0, y: 0 };
 
     // Head + Tail
     private soul = null;
@@ -77,15 +79,15 @@ export class Pool {
     private whisker2Segments = new THREE.LineSegments(this.whisker2Geometry, this.whisker2Material);
     private aspect = window.innerWidth / window.innerHeight;
 
-    private raycaster = new THREE.Raycaster();
-    private mouse = new THREE.Vector2();
-
 
     // Uniforms
     private uniforms: any = {
         u_frame: { value: 0 },
         u_time: { value: 0 },
-        u_mouse: { value: { x: -8, y: -8, z: 0 } },
+        //u_mouse: { value: { x: -8, y: -8, z: 0 } },
+        //u_mouse: { type: "v3", value: new THREE.Vector3() },
+        //u_mouse: { value: { x: 0, y: 0, z: 0 } },
+        u_drop: { value: { x: 0, y: 0, z: 0 } },
         u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
         u_buffer: { value: this.bufferWrite.texture },
         u_environment: { value: this.env },
@@ -112,10 +114,6 @@ export class Pool {
         this.createSpikeInstances();
         this.addEventListeners();
         this.createWhiskers();
-
-
-
-
 
         const terrarium = this.renderer.domElement;
         const fish0x0000 = new Fish({ x: 0, y: 0 }, this.numBones, terrarium, 6);
@@ -284,10 +282,8 @@ export class Pool {
 
             this.ripple();
 
-
             this.drawBones(this.ENDOLITH.wake());
             this.drawSpikes(this.ENDOLITH.wake());
-
 
             S.sharedHead = { x: this.ENDOLITH.head.x / window.innerWidth, y: (window.innerHeight - this.ENDOLITH.head.y) / window.innerHeight };
             const leftCowl = this.leftCowl;
@@ -304,10 +300,8 @@ export class Pool {
                 this.ENDOLITH.breathe();
             }
 
-
             this.renderer.setRenderTarget(null);
             this.renderer.setClearAlpha(0.0);
-
 
             //this.renderer.render(this.scene, this.camera);
             this.scene.traverse(this.darkenMaterial.bind(this));
@@ -316,6 +310,13 @@ export class Pool {
             this.bloomComposer.render();
             //this.camera.layers.set(0);
             this.scene.traverse(this.restoreMaterial.bind(this));
+
+            if ((S.curDrop.x !== 0 || S.curDrop.y !== 0) && this.drop != S.curDrop) {
+                this.drop = S.curDrop;
+                this.drip(this.drop.x, this.drop.y);
+            }
+
+
 
             this.finalComposer.render();
             requestAnimationFrame(render);
@@ -327,20 +328,72 @@ export class Pool {
         window.addEventListener('resize', this.scale.bind(this));
         window.addEventListener('click', this.live.bind(this));
         //window.addEventListener('pointerdown', this.onPointerDown.bind(this));
+        //window.addEventListener('pointerup', this.onPointerUp.bind(this));
+        window.addEventListener('pointermove', this.onPointerMove.bind(this));
     }
 
-    private onPointerDown(event: PointerEvent): void {
-
-        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        const intersects = this.raycaster.intersectObjects(this.scene.children, false);
-        if (intersects.length > 0) {
-            console.log(intersects[0].object)
-            const object = intersects[0].object;
-            object.layers.toggle(this.BLOOM_SCENE);
+    private onPointerMove = (e: PointerEvent) => {
+        let ratio = window.innerHeight / window.innerWidth;
+        if (window.innerHeight > window.innerWidth) {
+            this.newmouse.x = (e.pageX - window.innerWidth / 2) / window.innerWidth;
+            this.newmouse.y = (e.pageY - window.innerHeight / 2) / window.innerHeight * -1 * ratio;
+        } else {
+            this.newmouse.x = (e.pageX - window.innerWidth / 2) / window.innerWidth / ratio;
+            this.newmouse.y = (e.pageY - window.innerHeight / 2) / window.innerHeight * -1;
         }
+        e.preventDefault();
+        //this.uniforms.u_mouse.value.x = this.newmouse.x;
+        //this.uniforms.u_mouse.value.y = this.newmouse.y;
+
+        //console.log(this.newmouse.x, this.newmouse.y)
+    };
+
+    private onPointerDown = () => {
+        this.uniforms.u_mouse.value.z = 1;
+    };
+
+    private onPointerUp = () => {
+        this.uniforms.u_mouse.value.z = 0;
+    };
+
+    private drip = (x: number, y: number) => {
+        ///console.log(x, y)
+        const newX = x * 2 - 1;
+        const newY = y * 2 - 1;
+
+
+        let dx = newX - S.sharedHead.x;
+        let dy = newY - S.sharedHead.y;
+
+        // Step 2: Normalize the direction vector.
+        let length = Math.sqrt(dx * dx + dy * dy);
+        dx = dx / length;
+        dy = dy / length;
+
+        // Step 3: Multiply by 0.2.
+        dx = dx * 0.1;
+        dy = dy * 0.1;
+
+        // Step 4: Get the new position.
+        let finalX = newX + dx;
+        let finalY = newY + dy;
+
+        this.uniforms.u_drop.value.x = newX / 2;
+        this.uniforms.u_drop.value.y = newY / 2;
+
+
+        this.uniforms.u_drop.value.z = 1;
+
+
+
+
+        console.log(x, y, newX, newY, finalX, finalY)
+
+        setTimeout(() => {
+            this.uniforms.u_drop.value.z = 0;
+            this.drop = { x: 0, y: 0 };
+            S.curDrop = { x: 0, y: 0 };
+        }, 100);
     }
 
     /* 

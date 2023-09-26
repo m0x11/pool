@@ -63,7 +63,7 @@ export class Food {
 
     private createAnimationLoop(): void {
         const dummyObject = new THREE.Object3D();
-        const rotationSpeed = 0.01;
+        const rotationSpeed = 0.04;
         const translationSpeed = 0.002;
 
         const render = (): void => {
@@ -82,10 +82,12 @@ export class Food {
                 const distanceToHead = new THREE.Vector2(foodItem.x, foodItem.y)
                     .distanceTo(new THREE.Vector2(S.sharedHead.x, S.sharedHead.y));
                 if (distanceToHead < 0.1 || foodItem.y > 1) {
+                    S.curDrop.x = foodItem.x;
+                    S.curDrop.y = foodItem.y;
                     continue;
                 }
                 dummyObject.position.set(foodItem.x, foodItem.y, 0);
-                dummyObject.scale.set(0.02, 0.03, 0.02);
+                dummyObject.scale.set(0.01, 0.04, 0.01);
                 dummyObject.updateMatrix();
                 this.foodInstances.setMatrixAt(aliveIndex, dummyObject.matrix);
                 if (aliveIndex !== i) {
