@@ -327,67 +327,14 @@ export class Pool {
     private addEventListeners(): void {
         window.addEventListener('resize', this.scale.bind(this));
         window.addEventListener('click', this.live.bind(this));
-        //window.addEventListener('pointerdown', this.onPointerDown.bind(this));
-        //window.addEventListener('pointerup', this.onPointerUp.bind(this));
-        window.addEventListener('pointermove', this.onPointerMove.bind(this));
     }
 
-    private onPointerMove = (e: PointerEvent) => {
-        let ratio = window.innerHeight / window.innerWidth;
-        if (window.innerHeight > window.innerWidth) {
-            this.newmouse.x = (e.pageX - window.innerWidth / 2) / window.innerWidth;
-            this.newmouse.y = (e.pageY - window.innerHeight / 2) / window.innerHeight * -1 * ratio;
-        } else {
-            this.newmouse.x = (e.pageX - window.innerWidth / 2) / window.innerWidth / ratio;
-            this.newmouse.y = (e.pageY - window.innerHeight / 2) / window.innerHeight * -1;
-        }
-        e.preventDefault();
-        //this.uniforms.u_mouse.value.x = this.newmouse.x;
-        //this.uniforms.u_mouse.value.y = this.newmouse.y;
-
-        //console.log(this.newmouse.x, this.newmouse.y)
-    };
-
-    private onPointerDown = () => {
-        this.uniforms.u_mouse.value.z = 1;
-    };
-
-    private onPointerUp = () => {
-        this.uniforms.u_mouse.value.z = 0;
-    };
-
     private drip = (x: number, y: number) => {
-        ///console.log(x, y)
         const newX = x * 2 - 1;
         const newY = y * 2 - 1;
-
-
-        let dx = newX - S.sharedHead.x;
-        let dy = newY - S.sharedHead.y;
-
-        // Step 2: Normalize the direction vector.
-        let length = Math.sqrt(dx * dx + dy * dy);
-        dx = dx / length;
-        dy = dy / length;
-
-        // Step 3: Multiply by 0.2.
-        dx = dx * 0.1;
-        dy = dy * 0.1;
-
-        // Step 4: Get the new position.
-        let finalX = newX + dx;
-        let finalY = newY + dy;
-
         this.uniforms.u_drop.value.x = newX / 2;
         this.uniforms.u_drop.value.y = newY / 2;
-
-
         this.uniforms.u_drop.value.z = 1;
-
-
-
-
-        console.log(x, y, newX, newY, finalX, finalY)
 
         setTimeout(() => {
             this.uniforms.u_drop.value.z = 0;
@@ -420,20 +367,10 @@ export class Pool {
 
     private async createSoul(): Promise<void> {
         const loader = new OBJLoader();
-
-
-
         const material = new THREE.MeshPhysicalMaterial({
             roughness: 0,
             metalness: 1,
         });
-
-
-        /*
-        const material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-        });*/
-
         loader.load('/src/assets/@.obj', (obj: any) => {
             obj.position.set(.5, .5, -.2);
             obj.rotation.set(0, 0, 0);

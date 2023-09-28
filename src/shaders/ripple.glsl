@@ -99,6 +99,7 @@ vec4 renderPass(vec2 uv, inout float distortion) {
 
     vec3 lightColour = vec3(.8, .8, 1.);
 
+    //float shininess = .9;
     float shininess = .9;
     float brightness = 1.;
 
@@ -124,6 +125,7 @@ vec4 renderPass(vec2 uv, inout float distortion) {
 // MO
 vec4 ripple (vec2 uv) {
     vec3 e = vec3(vec2(3.6)/u_resolution.xy,0.);
+    //vec3 e = vec3(vec2(1.)/u_resolution.xy,0.);
     vec2 s = gl_FragCoord.xy / u_resolution.xy;
     float ratio = u_resolution.x / u_resolution.y;
     vec2 drop = u_drop.xy - uv;
@@ -160,11 +162,16 @@ void main() {
       float distortion;
       vec4 reflections = renderPass(uv, distortion);
       
-      vec4 c = texture2D(u_environment, uv/1.5+distortion).rgba;
+      //vec4 c = texture2D(u_environment, uv/1.5+distortion).rgba;
+        //vec4 c = texture2D(u_environment, uv + distortion).rgba;
+        vec4 c = texture2D(u_environment, uv/1.5+distortion).rgba;
+      //vec4 c = texture2D(u_environment, uv).rbra;
       color = c * c * c * .4;
+      //color = c * c * c * 1.;
       color *= color; 
       color += (texture2D(u_buffer, sampleX+.03).x)*.1 - .1;
-      color += reflections *.01;
+      //color += reflections * .01;
+        color += reflections * 0.01;
     }
     gl_FragColor = color;
 }

@@ -32,6 +32,19 @@ export class Food {
         this.foodInstances = this.createAllTorusInstances();
         //this.createTorus(this.scene, this.camera);
         container.appendChild(this.effect.domElement);
+        navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+        function onMIDISuccess(midiAccess) {
+            // When we get a successful response, we'll iterate over all available MIDI input devices
+            console.log(midiAccess)
+            var inputs = midiAccess.inputs.values();
+            for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
+                // Each input device we find, we'll attach an event listener to
+                input.value.onmidimessage = onMIDIMessage;
+            }
+        }
+        function onMIDIFailure() {
+            console.error('Could not access your MIDI devices.');
+        }
     }
 
     /* 
@@ -82,8 +95,10 @@ export class Food {
                 const distanceToHead = new THREE.Vector2(foodItem.x, foodItem.y)
                     .distanceTo(new THREE.Vector2(S.sharedHead.x, S.sharedHead.y));
                 if (distanceToHead < 0.1 || foodItem.y > 1) {
-                    S.curDrop.x = foodItem.x;
-                    S.curDrop.y = foodItem.y;
+                    if (!(foodItem.y > 1)) {
+                        S.curDrop.x = foodItem.x;
+                        S.curDrop.y = foodItem.y;
+                    }
                     continue;
                 }
                 dummyObject.position.set(foodItem.x, foodItem.y, 0);
