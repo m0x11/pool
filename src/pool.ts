@@ -116,7 +116,7 @@ export class Pool {
         this.createWhiskers();
 
         const terrarium = this.renderer.domElement;
-        const fish0x0000 = new Fish({ x: 0, y: 0 }, this.numBones, terrarium, 6);
+        const fish0x0000 = new Fish({ x: 0, y: 0 }, this.numBones, terrarium, 6, 1, 1, 0);
         this.ENDOLITH = fish0x0000;
         fish0x0000.birth();
         fish0x0000.sleep();
@@ -317,6 +317,7 @@ export class Pool {
             }
 
 
+            this.ENDOLITH.setInterest(S.closestFood);
 
             this.finalComposer.render();
             requestAnimationFrame(render);
@@ -353,12 +354,12 @@ export class Pool {
     private W1: Fish;
     private W2: Fish;
     private async createWhiskers(): Promise<void> {
-        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0.5, 1, 0.15);
+        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, 0.15);
         this.W1 = whisker1Messanger;
         this.W1.birth();
         this.W1.live();
         this.scene.add(this.whisker1Segments);
-        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0.5, 1, -0.15);
+        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, -0.15);
         this.W2 = whisker2Messanger;
         this.W2.birth();
         this.W2.live();

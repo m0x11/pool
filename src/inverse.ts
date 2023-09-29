@@ -47,13 +47,36 @@ export class Bone {
 
     follow(leader: Point, lifespan: number, velocity: number, angleOffset: number = 0.0) {
 
-        const noiseRatio = velocity / 3000 * 0;
+        const noiseRatio = 0.1 + (velocity / 10000);
+
+        //const noiseRatio = 0.1;
+
 
         const noise = simplex.noise3D(
             (this.index + this.origin.x + this.seed) * 0.005,
             (this.index + this.origin.y + this.seed) * 0.005,
             (this.index + lifespan + this.seed) * 0.005
-        ) * noiseRatio * (1 + this.seed) * 0;
+        ) * noiseRatio * this.seed;
+
+
+
+        /*
+                const noise = simplex.noise3D(
+                    lifespan * this.index / 1000,
+                    lifespan * this.index / 1000,
+                    lifespan * this.index / 1000
+                ) * this.seed * 0.1;
+        */
+
+
+        /*
+const noise = simplex.noise3D(
+    (lifespan + (1 + this.origin.x) * 10) * 0.005,
+    (lifespan + (1 + this.origin.y) * 10) * 0.005,
+    (lifespan + (1 + this.origin.x + this.origin.y) * 10) * 0.005,
+) * noiseRatio * this.seed;
+*/
+
 
         this.origin.x = lerp(this.origin.x, leader.x, this.weight);
         this.origin.y = lerp(this.origin.y, leader.y, this.weight);
@@ -65,7 +88,9 @@ export class Bone {
     calculateCoordinates(point1: Point, point2: Point, distance: number, noise: number, angleOffset: number = 0.0) {
         const dx = point2.x - point1.x;
         const dy = point2.y - point1.y;
-        const angle = Math.atan2(dy, dx) + noise + angleOffset;
+        //const angle = Math.atan2(dy, dx) + noise + angleOffset;
+        //const angle = Math.atan2(dy, dx) + angleOffset;
+        let angle = Math.atan2(dy, dx) + angleOffset;
         const x = point2.x - Math.cos(angle) * distance;
         const y = point2.y - Math.sin(angle) * distance;
         return { x: x, y: y };
@@ -111,7 +136,7 @@ export class Fish {
         this.strength = 0.05;
         this.weight = weight;
         this.cycles = 0;
-        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        //document.addEventListener('mousemove', this.handleMouseMove.bind(this));
     }
 
     newWorld() {
@@ -144,6 +169,14 @@ export class Fish {
 
     wake() {
         return this.anatomy;
+    }
+
+    setInterest(interest: Point) {
+        // convert from three js coordinates to canvas coordinates
+        interest.x = interest.x * window.innerWidth;
+        interest.y = interest.y * window.innerHeight;
+        console.log(interest)
+        this.interest = { x: Math.min(interest.x, window.innerWidth), y: Math.min(interest.y, window.innerHeight) };
     }
 
     swim(perfect: boolean) {
@@ -260,7 +293,7 @@ export class Fish {
             this.anatomy[i].origin.x = lerp(this.anatomy[i].origin.x, leader.x, this.anatomy[i].weight);
             this.anatomy[i].origin.y = lerp(this.anatomy[i].origin.y, leader.y, this.anatomy[i].weight);
 
-            const momentary = this.anatomy[i].calculateCoordinates(this.anatomy[i].end, this.anatomy[i].origin, this.anatomy[i].proporition, angle, 0);
+            const momentary = this.anatomy[i].calculateCoordinates(this.anatomy[i].end, this.anatomy[i].origin, this.anatomy[i].proporition, 0, angle);
             this.anatomy[i].end = { x: momentary.x, y: momentary.y };
         }
     }

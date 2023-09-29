@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { AsciiEffect } from 'three/addons/effects/AsciiEffect.js';
 import S from './sharedState';
+import sharedState from './sharedState';
 
 type FoodPosition = {
     x: number;
@@ -88,6 +89,8 @@ export class Food {
 
 
             let aliveIndex = 0;
+            let closestFoodDistance = -1;
+            let closestFoodIndex = -1;
 
             for (let i = 0; i < this.currentInstanceCount; i++) {
                 const foodItem = this.foodPositions[i];
@@ -101,6 +104,10 @@ export class Food {
                     }
                     continue;
                 }
+                if (distanceToHead < closestFoodDistance || closestFoodDistance === -1) {
+                    closestFoodDistance = distanceToHead;
+                    closestFoodIndex = aliveIndex;
+                }
                 dummyObject.position.set(foodItem.x, foodItem.y, 0);
                 dummyObject.scale.set(0.01, 0.04, 0.01);
                 dummyObject.updateMatrix();
@@ -110,6 +117,11 @@ export class Food {
                 }
                 aliveIndex++;
             }
+            if (closestFoodIndex !== -1) {
+                sharedState.closestFood.x = this.foodPositions[closestFoodIndex].x;
+                sharedState.closestFood.y = this.foodPositions[closestFoodIndex].y;
+            }
+
             this.currentInstanceCount = aliveIndex;
             this.foodInstances.count = aliveIndex;
             this.foodPositions.length = aliveIndex;
