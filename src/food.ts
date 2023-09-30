@@ -33,19 +33,33 @@ export class Food {
         this.foodInstances = this.createAllTorusInstances();
         //this.createTorus(this.scene, this.camera);
         container.appendChild(this.effect.domElement);
-        navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-        function onMIDISuccess(midiAccess) {
-            // When we get a successful response, we'll iterate over all available MIDI input devices
-            console.log(midiAccess)
-            var inputs = midiAccess.inputs.values();
-            for (var input = inputs.next(); input && !input.done; input = inputs.next()) {
-                // Each input device we find, we'll attach an event listener to
-                input.value.onmidimessage = onMIDIMessage;
-            }
+        this.initMIDI();
+    }
+
+    /* MIDI FUNCTION */
+    private initMIDI() {
+        navigator.requestMIDIAccess()
+            .then(this.onMIDISuccess.bind(this))
+            .catch(this.onMIDIFailure.bind(this));
+    }
+
+    private onMIDISuccess(midiAccess) {
+        console.log(midiAccess);
+
+        for (let input of midiAccess.inputs.values()) {
+            input.onmidimessage = this.onMIDIMessage.bind(this);
         }
-        function onMIDIFailure() {
-            console.error('Could not access your MIDI devices.');
+    }
+
+    private onMIDIMessage(event) {
+        if (event.data[0] === 144 || event.data[0] === 128 && event.data[2] !== 0) {
+            const scaledNote = (event.data[1] - 40) / 66;
+            this.addFood(scaledNote);
         }
+    }
+
+    private onMIDIFailure() {
+        console.error('Could not access your MIDI devices.');
     }
 
     /* 
@@ -109,7 +123,7 @@ export class Food {
                     closestFoodIndex = aliveIndex;
                 }
                 dummyObject.position.set(foodItem.x, foodItem.y, 0);
-                dummyObject.scale.set(0.01, 0.04, 0.01);
+                dummyObject.scale.set(0.01, 0.01, 0.01);
                 dummyObject.updateMatrix();
                 this.foodInstances.setMatrixAt(aliveIndex, dummyObject.matrix);
                 if (aliveIndex !== i) {

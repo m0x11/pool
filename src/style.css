@@ -19,10 +19,11 @@ body {
   pointer-events: none;
   color: #fff !important;
 
-  text-shadow: 0 0 5px #fff,
-    0 0 10px #fff,
-    0 0 15px #fff,
-    0 0 20px #fff,
-    0 0 5px #fff;
-
+  text-shadow:
+    0 0 12px #fff,
+    0 0 12px #fff,
+    0 0 12px #fff,
+    0 0 12px #fff,
+    0 0 12px #fff,
+    0 0 12px #fff;
 }

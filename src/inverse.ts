@@ -47,18 +47,17 @@ export class Bone {
 
     follow(leader: Point, lifespan: number, velocity: number, angleOffset: number = 0.0) {
 
-        const noiseRatio = 0.1 + (velocity / 10000);
+        //const noiseRatio = 0.1 + (velocity / 10000);
 
         //const noiseRatio = 0.1;
 
+        const noiseRatio = .1;
 
         const noise = simplex.noise3D(
             (this.index + this.origin.x + this.seed) * 0.005,
             (this.index + this.origin.y + this.seed) * 0.005,
             (this.index + lifespan + this.seed) * 0.005
         ) * noiseRatio * this.seed;
-
-
 
         /*
                 const noise = simplex.noise3D(
@@ -70,12 +69,12 @@ export class Bone {
 
 
         /*
-const noise = simplex.noise3D(
-    (lifespan + (1 + this.origin.x) * 10) * 0.005,
-    (lifespan + (1 + this.origin.y) * 10) * 0.005,
-    (lifespan + (1 + this.origin.x + this.origin.y) * 10) * 0.005,
-) * noiseRatio * this.seed;
-*/
+            const noise = simplex.noise3D(
+                (lifespan + (1 + this.origin.x) * 10) * 0.005,
+                (lifespan + (1 + this.origin.y) * 10) * 0.005,
+                (lifespan + (1 + this.origin.x + this.origin.y) * 10) * 0.005,
+            ) * noiseRatio * this.seed;
+            */
 
 
         this.origin.x = lerp(this.origin.x, leader.x, this.weight);
@@ -90,7 +89,7 @@ const noise = simplex.noise3D(
         const dy = point2.y - point1.y;
         //const angle = Math.atan2(dy, dx) + noise + angleOffset;
         //const angle = Math.atan2(dy, dx) + angleOffset;
-        let angle = Math.atan2(dy, dx) + angleOffset;
+        let angle = Math.atan2(dy, dx) + angleOffset + noise;
         const x = point2.x - Math.cos(angle) * distance;
         const y = point2.y - Math.sin(angle) * distance;
         return { x: x, y: y };
@@ -136,7 +135,7 @@ export class Fish {
         this.strength = 0.05;
         this.weight = weight;
         this.cycles = 0;
-        //document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
     }
 
     newWorld() {
@@ -172,10 +171,8 @@ export class Fish {
     }
 
     setInterest(interest: Point) {
-        // convert from three js coordinates to canvas coordinates
         interest.x = interest.x * window.innerWidth;
         interest.y = interest.y * window.innerHeight;
-        console.log(interest)
         this.interest = { x: Math.min(interest.x, window.innerWidth), y: Math.min(interest.y, window.innerHeight) };
     }
 
@@ -189,8 +186,6 @@ export class Fish {
         this.angularVelocity = angle;
         torque = angle;
         */
-
-
         this.velocity = Math.abs(this.interest.x - this.anatomy[0].origin.x) + Math.abs(this.interest.y - this.anatomy[0].origin.y)
         this.head.x = this.anatomy[0].origin.x;
         this.head.y = this.anatomy[0].origin.y;
@@ -280,8 +275,6 @@ export class Fish {
         }
     }
 
-
-
     sleep() {
         this.anatomy[0].origin.x = window.innerWidth / 2;
         this.anatomy[0].origin.y = window.innerHeight / 2;
@@ -327,22 +320,25 @@ export class Fish {
             this.interest.x * 0.0015,
             this.interest.y * 0.0015,
             this.lifespan * 0.0015
-        ) * TAU;
+        ) * TAU * 100;
 
-        t = 1;
+        //t = 1;
 
         this.interest.x = lerp(
             this.interest.x,
             this.interest.x + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            //this.interest.x + t + 20 * (Math.cos(this.lifespan * 0.05)),
             this.strength
         );
 
         this.interest.y = lerp(
             this.interest.y,
             this.interest.y + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            //this.interest.y + t + 20 * (Math.cos(this.lifespan * 0.05)),
             this.strength
         );
 
+        /*
         if (
             this.head.x > window.innerWidth + 500 ||
             this.head.x < -500 ||
@@ -352,6 +348,7 @@ export class Fish {
             this.interest.x = Math.random() * window.innerWidth
             this.interest.y = Math.random() * window.innerHeight
         }
+        */
     }
 
     attach(newInterest: Point) {
@@ -366,11 +363,8 @@ export class Fish {
     }
 
     live() {
-
-
         this.swim(false);
         this.lifespan += 1;
-
         this.updateTarget();
         requestAnimationFrame(this.live.bind(this));
     }

@@ -44,7 +44,7 @@ export class Pool {
     private bufferRead = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
     private bufferWrite = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
 
-    private env = new THREE.TextureLoader().load('src/env/t.png');
+    private env = new THREE.TextureLoader().load('src/env/tiles.jpg');
     private newmouse = { x: 0, y: 0, z: 0 };
     private drop = { x: 0, y: 0 };
 
@@ -315,9 +315,7 @@ export class Pool {
                 this.drop = S.curDrop;
                 this.drip(this.drop.x, this.drop.y);
             }
-
-
-            this.ENDOLITH.setInterest(S.closestFood);
+            //this.ENDOLITH.setInterest(S.closestFood);
 
             this.finalComposer.render();
             requestAnimationFrame(render);
