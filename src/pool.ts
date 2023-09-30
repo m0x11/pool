@@ -47,7 +47,7 @@ export class Pool {
     //private env = new THREE.TextureLoader().load('src/env/tiles.jpg');
     private env = new THREE.TextureLoader().load('src/env/organic.png');
     private noise = new THREE.TextureLoader().load('src/env/noise.png');
-    private tiles = new THREE.TextureLoader().load('src/env/t.png');
+    private tiles = new THREE.TextureLoader().load('src/env/pearl.png');
 
     private newmouse = { x: 0, y: 0, z: 0 };
     private drop = { x: 0, y: 0 };
@@ -115,8 +115,8 @@ export class Pool {
         this.noise.wrapS = THREE.RepeatWrapping;
         this.noise.wrapT = THREE.RepeatWrapping;
         this.noise.minFilter = THREE.LinearFilter;
-        this.tiles.wrapS = THREE.RepeatWrapping;
-        this.tiles.wrapT = THREE.RepeatWrapping;
+        //this.tiles.wrapS = THREE.RepeatWrapping;
+        //this.tiles.wrapT = THREE.RepeatWrapping;
         this.tiles.minFilter = THREE.NearestMipMapNearestFilter
 
         this.createSpine();

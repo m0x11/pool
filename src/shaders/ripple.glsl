@@ -17,17 +17,25 @@
   #define velPropagation 1.4
   #define pow2(x) (x * x)
   
-  // Holy fuck balls, fresnel!
+    /*
   const float bias = .2;
   const float scale = 10.;
   const float power = 10.1;
-  
-  // blur constants
+
   const float blurMultiplier = 0.95;
   const float blurStrength = 2.98;
   const int samples = 8;
   const float sigma = float(samples) * 0.25;
-  
+  */
+
+    const float bias = .2;
+  const float scale = 10.;
+  const float power = 100.1;
+
+  const float blurMultiplier = 0.95;
+  const float blurStrength =0.98;
+  const int samples = 12;
+  const float sigma = float(samples) * 0.25;
 
   vec2 hash2(vec2 p)
   {
@@ -156,7 +164,8 @@
     vec3 surfacePos = vec3(uv, 0.0);
     vec3 ray = normalize(vec3(uv, 1.));
 
-    vec3 lightPos = vec3(cos(u_time * .5 + 2.) * 2., 1. + sin(u_time * .5 + 2.) * 2., -3.);
+    //vec3 lightPos = vec3(cos(u_time * .5 + 2.) * 2., 1. + sin(u_time * .5 + 2.) * 2., -3.);
+    vec3 lightPos = vec3(0., 0., -5.);
     vec3 normal = vec3(0., 0., -1);
 
     vec2 sampleDistance = vec2(.005, 0.);
@@ -175,6 +184,7 @@
     
     // Holy fuck balls, fresnel!
     // specular = max(0.0, min(1.0, bias + scale * (1.0 + length(camPos-sp * surfNormal)) * power));
+    /*
     float shade = bias + (scale * pow(1.0 + dot(normalize(surfacePos-vec3(uv, -3.0)), normal), power));
 
     vec3 lightV = lightPos - surfacePos;
@@ -192,17 +202,48 @@
     float diffuse = max(dot(normal, lightV), 0.);
     float specular = pow(max(dot( reflect(-lightV, normal), -ray), 0.), 52.) * shininess;
     
-    // vec3 tex = texture2D(u_environment, (reflect(vec3(uv, -1.), normal)).xy ).rgb;
     vec3 reflect_ray = reflect(vec3(uv, 1.), normal * 1.);
 
     vec3 tex = envMap(reflect_ray, normal, 1.5) * (shade + .5); // Fake environment mapping.
 
     vec3 texCol = (vec3(.4, .4, .4) + tex * brightness) * .5;
     
-    float metalness = (10. - colourmap.x);
+    float metalness = (1. - colourmap.x);
     metalness *= metalness;
 
     vec3 colour = (texCol * (diffuse*vec3(.9, .97, .92)*2. + 0.5) + lightColour*specular * f * 2. * metalness)*attenuation*1.5;
+    // colour *= 1.5;
+
+    // return vec4(shade);
+    return vec4(colour, 1.);
+    */
+    float shade = bias + (scale * pow(1.0 + dot(normalize(surfacePos-vec3(uv, -3.0)), normal), power));
+
+    vec3 lightV = lightPos - surfacePos;
+    float lightDist = max(length(lightV), 0.001);
+    lightV /= lightDist;
+
+    vec3 lightColour = vec3(.8, .8, .8);
+
+    float shininess = 5.;
+    float brightness = 1.;
+
+    float falloff = 0.1;
+    float attenuation = 20./(1.0 + lightDist*lightDist*falloff);
+
+    float diffuse = max(dot(normal, lightV), 0.);
+    float specular = pow(max(dot( reflect(-lightV, normal), -ray), 0.), 52.) * shininess;
+    
+    vec3 reflect_ray = reflect(vec3(uv, 1.), normal * 1.);
+
+    vec3 tex = envMap(reflect_ray, normal, 1.5) * (shade + .5); // Fake environment mapping.
+
+    vec3 texCol = (vec3(.4, .4, .4) + tex * brightness) * .5;
+    
+    float metalness = (1. - colourmap.x);
+    metalness *= metalness;
+
+    vec3 colour = (texCol * (diffuse*vec3(.9, .9, .9)*2. + 0.5) + lightColour*specular * f * 2. * metalness)*attenuation*1.5;
     // colour *= 1.5;
 
     // return vec4(shade);
@@ -229,7 +270,7 @@
       fragcolour = c * c * c * .4;
       fragcolour *= fragcolour; 
       fragcolour += (texture2D(u_buffer, sampleX+.03).x)*.1 - .1;
-      fragcolour += reflections*.1;
+      fragcolour += reflections*.05;
     }
 
     gl_FragColor = fragcolour ;
