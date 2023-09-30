@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { AsciiEffect } from 'three/addons/effects/AsciiEffect.js';
 import S from './sharedState';
 import sharedState from './sharedState';
+declare const SimplexNoise: any;
+const simplex = new SimplexNoise();
 
 type FoodPosition = {
     x: number;
@@ -89,10 +91,29 @@ export class Food {
         this.scene.add(frontLight2);
     }
 
+    private getNoise(x: number, y: number, index: number) {
+
+        const noiseRatio = .05 * (0.5 + y / 10);
+
+        const seedA = 2;
+        const seedB = 2;
+        const seedC = 2;
+
+        const noise = simplex.noise3D(
+            y * seedA,
+            y * seedB,
+            y * seedC,
+        );
+
+        console.log(y, noise)
+
+        return noise * noiseRatio;
+    }
+
     private createAnimationLoop(): void {
         const dummyObject = new THREE.Object3D();
         const rotationSpeed = 0.04;
-        const translationSpeed = 0.002;
+        const translationSpeed = 0.003;
 
         const render = (): void => {
             //this.renderer.clear()
@@ -109,6 +130,7 @@ export class Food {
             for (let i = 0; i < this.currentInstanceCount; i++) {
                 const foodItem = this.foodPositions[i];
                 foodItem.y += translationSpeed;
+                foodItem.x += this.getNoise(foodItem.x, foodItem.y, i);
                 const distanceToHead = new THREE.Vector2(foodItem.x, foodItem.y)
                     .distanceTo(new THREE.Vector2(S.sharedHead.x, S.sharedHead.y));
                 if (distanceToHead < 0.1 || foodItem.y > 1) {

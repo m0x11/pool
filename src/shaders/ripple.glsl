@@ -30,11 +30,11 @@
 
     const float bias = .2;
   const float scale = 10.;
-  const float power = 100.1;
+  const float power = 10.1;
 
   const float blurMultiplier = 0.95;
-  const float blurStrength =0.98;
-  const int samples = 12;
+  const float blurStrength = 1.0;
+  const int samples = 11;
   const float sigma = float(samples) * 0.25;
 
   vec2 hash2(vec2 p)
@@ -102,8 +102,8 @@
     
     vec2 drop = u_drop.xy - uv;
     if(u_drop.z == 1.) {
-        shade = smoothstep(.02 + abs(sin(u_time*10.) * .2), .0, length(drop)); 
-        }
+        shade = smoothstep(.02 + abs(sin(u_time*10.) * .1), .0, length(drop)); 
+    }
 
 
     vec4 texcol = fragcolour;
@@ -229,7 +229,7 @@
     float brightness = 1.;
 
     float falloff = 0.1;
-    float attenuation = 20./(1.0 + lightDist*lightDist*falloff);
+    float attenuation = 0.1/(1.0 + lightDist*lightDist*falloff);
 
     float diffuse = max(dot(normal, lightV), 0.);
     float specular = pow(max(dot( reflect(-lightV, normal), -ray), 0.), 52.) * shininess;
@@ -270,7 +270,7 @@
       fragcolour = c * c * c * .4;
       fragcolour *= fragcolour; 
       fragcolour += (texture2D(u_buffer, sampleX+.03).x)*.1 - .1;
-      fragcolour += reflections*.05;
+      fragcolour += reflections*.5;
     }
 
     gl_FragColor = fragcolour ;

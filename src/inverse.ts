@@ -47,16 +47,16 @@ export class Bone {
 
     follow(leader: Point, lifespan: number, velocity: number, angleOffset: number = 0.0) {
 
-        //const noiseRatio = 0.1 + (velocity / 10000);
+        const noiseRatio = 0.05 * (velocity / 100);
 
         //const noiseRatio = 0.1;
 
-        const noiseRatio = .1;
+        //const noiseRatio = .1;
 
         const noise = simplex.noise3D(
-            (this.index + this.origin.x + this.seed) * 0.005,
-            (this.index + this.origin.y + this.seed) * 0.005,
-            (this.index + lifespan + this.seed) * 0.005
+            (this.index / 2 + this.origin.x + this.seed) * 0.005,
+            (this.index / 2 + this.origin.y + this.seed) * 0.005,
+            (this.index / 2 + lifespan / 2 + this.seed) * 0.005
         ) * noiseRatio * this.seed;
 
         /*

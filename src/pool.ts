@@ -47,25 +47,25 @@ export class Pool {
     //private env = new THREE.TextureLoader().load('src/env/tiles.jpg');
     private env = new THREE.TextureLoader().load('src/env/organic.png');
     private noise = new THREE.TextureLoader().load('src/env/noise.png');
-    private tiles = new THREE.TextureLoader().load('src/env/pearl.png');
+    private tiles = new THREE.TextureLoader().load('src/env/pool.png');
 
     private newmouse = { x: 0, y: 0, z: 0 };
     private drop = { x: 0, y: 0 };
 
     // Head + Tail
     private soul = null;
-    private soulScale = -0.02;
+    private soulScale = -0.018;
     private tail = null;
     private tailScale = 0.025;
 
     // Spikes
     private spikeInstances: any = {};
-    private spikesScale = 0.02;
-    private spikeFrequency = 4;
-    private skip = 5;
+    private spikesScale = 0.018;
+    private spikeFrequency = 3;
+    private skip = 4;
 
     // Spine
-    private numBones = 140;
+    private numBones = 120;
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
 
@@ -115,8 +115,8 @@ export class Pool {
         this.noise.wrapS = THREE.RepeatWrapping;
         this.noise.wrapT = THREE.RepeatWrapping;
         this.noise.minFilter = THREE.LinearFilter;
-        //this.tiles.wrapS = THREE.RepeatWrapping;
-        //this.tiles.wrapT = THREE.RepeatWrapping;
+        this.tiles.wrapS = THREE.RepeatWrapping;
+        this.tiles.wrapT = THREE.RepeatWrapping;
         this.tiles.minFilter = THREE.NearestMipMapNearestFilter
 
         this.createSpine();
@@ -192,8 +192,8 @@ export class Pool {
 
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0, 0, 0);
         this.bloomPass.threshold = 0;
-        this.bloomPass.strength = 1.5;
-        this.bloomPass.radius = 1.2;
+        this.bloomPass.strength = 1.2;
+        this.bloomPass.radius = 1.0;
 
         this.bloomComposer = new EffectComposer(this.renderer);
         this.bloomComposer.renderToScreen = false;
@@ -288,7 +288,7 @@ export class Pool {
 
             //this.renderer.clear();
             this.uniforms.u_frame.value++;
-            this.uniforms.u_time.value = this.uniforms.u_frame.value * 0.0005;
+            this.uniforms.u_time.value = this.uniforms.u_frame.value * 0.0001;
 
             this.ripple();
 
@@ -502,7 +502,7 @@ export class Pool {
                 const targetRotation = this.targetRotations[i];
                 let linear_scale = this.spikesScale * -1;
                 if (i === 2) {
-                    linear_scale = this.spikesScale * -1 - 0.009;
+                    linear_scale = this.spikesScale * -1 - 0.005;
                     let leftmostPoint = this.getSpikeEdge(i, 23811);
                     let leftmostPointScaled = this.toScreenPosition(leftmostPoint, this.camera, this.renderer.domElement);
                     this.leftCowl.x = leftmostPointScaled.x;
