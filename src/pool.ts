@@ -44,7 +44,11 @@ export class Pool {
     private bufferRead = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
     private bufferWrite = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
 
-    private env = new THREE.TextureLoader().load('src/env/tiles.jpg');
+    //private env = new THREE.TextureLoader().load('src/env/tiles.jpg');
+    private env = new THREE.TextureLoader().load('src/env/organic.png');
+    private noise = new THREE.TextureLoader().load('src/env/noise.png');
+    private tiles = new THREE.TextureLoader().load('src/env/t.png');
+
     private newmouse = { x: 0, y: 0, z: 0 };
     private drop = { x: 0, y: 0 };
 
@@ -82,17 +86,16 @@ export class Pool {
 
     // Uniforms
     private uniforms: any = {
-        u_frame: { value: 0 },
-        u_time: { value: 0 },
-        //u_mouse: { value: { x: -8, y: -8, z: 0 } },
-        //u_mouse: { type: "v3", value: new THREE.Vector3() },
-        //u_mouse: { value: { x: 0, y: 0, z: 0 } },
-        u_drop: { value: { x: 0, y: 0, z: 0 } },
-        u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        u_buffer: { value: this.bufferWrite.texture },
-        u_environment: { value: this.env },
-        u_simulate: { value: true },
-        u_skeleton: { value: [] }
+        u_time: { type: "f", value: 1.0 },
+        u_resolution: { type: "v2", value: new THREE.Vector2() },
+        u_noise: { type: "t", value: this.noise },
+        u_buffer: { type: "t", value: this.bufferWrite.texture },
+        u_texture: { type: "t", value: this.tiles },
+        u_environment: { type: "t", value: this.env },
+        u_mouse: { type: "v3", value: new THREE.Vector3() },
+        u_frame: { type: "i", value: -1. },
+        u_renderpass: { type: 'b', value: false },
+        u_drop: { type: 'v3', value: new THREE.Vector3() },
     };
 
     private leftCowl: Point = { x: 0, y: 0 };
@@ -108,6 +111,14 @@ export class Pool {
         this.createPlane();
         this.env.wrapS = THREE.RepeatWrapping;
         this.env.wrapT = THREE.RepeatWrapping;
+        this.env.minFilter = THREE.NearestMipMapNearestFilter;
+        this.noise.wrapS = THREE.RepeatWrapping;
+        this.noise.wrapT = THREE.RepeatWrapping;
+        this.noise.minFilter = THREE.LinearFilter;
+        this.tiles.wrapS = THREE.RepeatWrapping;
+        this.tiles.wrapT = THREE.RepeatWrapping;
+        this.tiles.minFilter = THREE.NearestMipMapNearestFilter
+
         this.createSpine();
         this.createSoul();
         this.createTail();
@@ -145,7 +156,6 @@ export class Pool {
         this.uniforms.u_resolution.value.y = this.renderer.domElement.height;
         this.bufferWrite = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
         this.bufferRead = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-        this.uniforms.u_frame;
         this.bloomComposer.setSize(window.innerWidth, window.innerHeight);
         this.finalComposer.setSize(window.innerWidth, window.innerHeight);
     }
@@ -259,7 +269,7 @@ export class Pool {
         const odims = this.uniforms.u_resolution.value.clone();
         this.uniforms.u_resolution.value.x = window.innerWidth;
         this.uniforms.u_resolution.value.y = window.innerHeight;
-        this.uniforms.u_simulate.value = true;
+        this.uniforms.u_renderpass.value = true;
         this.uniforms.u_buffer.value = this.bufferRead.texture;  // Read from bufferRead
         this.renderer.setRenderTarget(this.bufferWrite);  // Write into bufferWrite
         this.renderer.render(this.scene, this.camera, this.bufferWrite, true);
@@ -270,7 +280,7 @@ export class Pool {
         this.bufferRead = t;
 
         this.uniforms.u_resolution.value = odims;
-        this.uniforms.u_simulate.value = false;
+        this.uniforms.u_renderpass.value = false;
     }
 
     private createAnimationLoop(): void {
