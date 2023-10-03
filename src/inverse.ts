@@ -89,7 +89,7 @@ export class Bone {
         const dy = point2.y - point1.y;
         //const angle = Math.atan2(dy, dx) + noise + angleOffset;
         //const angle = Math.atan2(dy, dx) + angleOffset;
-        let angle = Math.atan2(dy, dx) + angleOffset + noise;
+        let angle = Math.atan2(dy, dx) + angleOffset //+ noise;
         const x = point2.x - Math.cos(angle) * distance;
         const y = point2.y - Math.sin(angle) * distance;
         return { x: x, y: y };
@@ -326,14 +326,16 @@ export class Fish {
 
         this.interest.x = lerp(
             this.interest.x,
-            this.interest.x + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            //this.interest.x + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            this.interest.x,
             //this.interest.x + t + 20 * (Math.cos(this.lifespan * 0.05)),
             this.strength
         );
 
         this.interest.y = lerp(
             this.interest.y,
-            this.interest.y + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            //this.interest.y + 20 * (Math.cos(t) + Math.cos(this.lifespan * 0.05)),
+            this.interest.y,
             //this.interest.y + t + 20 * (Math.cos(this.lifespan * 0.05)),
             this.strength
         );

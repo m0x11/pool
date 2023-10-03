@@ -19,7 +19,9 @@ export class Food {
     private foodInstances: THREE.InstancedMesh = new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), 0);
     private maxInstanceCount = 100;
     private currentInstanceCount = 0;
-    private testTorus = null;
+    private time = 0;
+
+    private record = [];
 
     constructor(container: HTMLElement) {
         this.camera.position.set(0, 0, 1);
@@ -56,8 +58,54 @@ export class Food {
     private onMIDIMessage(event) {
         if (event.data[0] === 144 || event.data[0] === 128 && event.data[2] !== 0) {
             const scaledNote = (event.data[1] - 40) / 66;
+            console.log(event)
+            this.record.push({
+                note: event.data[1],
+                timestamp: event.timeStamp
+            });
+
             this.addFood(scaledNote);
         }
+    }
+
+    async loadAndPlayFile(path) {
+        try {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error("Network response was not ok.");
+            }
+
+            const recordedData = await response.json();
+            this.playback(recordedData);
+        } catch (error) {
+            console.error("There was a problem with the fetch operation:", error.message);
+        }
+    }
+
+    playback(recordedData) {
+        let initialTimestamp = recordedData[0].timestamp;
+
+        recordedData.forEach(data => {
+            setTimeout(() => {
+                this.addFood((data.note - 40) / 66);
+            }, data.timestamp - initialTimestamp);
+        });
+    }
+
+    async saveRecordToFile() {
+        console.log("SAVING RECORD")
+        const jsonData = JSON.stringify(this.record);
+
+        // Create a blob from the JSON string
+        const blob = new Blob([jsonData], { type: 'application/json' });
+
+        // Create a link element to facilitate the download
+        const a = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'midi-record.json';
+        a.click();
+        URL.revokeObjectURL(url); // Free up memory from the object URL
     }
 
     private onMIDIFailure() {
@@ -91,21 +139,19 @@ export class Food {
         this.scene.add(frontLight2);
     }
 
-    private getNoise(x: number, y: number, index: number) {
+    private getNoise(x: number, y: number, time: number) {
 
-        const noiseRatio = .05 * (0.5 + y / 10);
+        const noiseRatio = .1 * y;
 
-        const seedA = 2;
-        const seedB = 2;
-        const seedC = 2;
+        const seedA = 0.20;
+        const seedB = 0.40;
+        const seedC = 0.80;
 
         const noise = simplex.noise3D(
-            y * seedA,
-            y * seedB,
-            y * seedC,
-        );
-
-        console.log(y, noise)
+            (y + time) * seedA,
+            (y + time) * seedB,
+            (y + time) * seedC,
+        ) * 0.1;
 
         return noise * noiseRatio;
     }
@@ -117,6 +163,7 @@ export class Food {
 
         const render = (): void => {
             //this.renderer.clear()
+            this.time += 0.001;
             this.effect.render(this.scene, this.camera);
             this.renderer.render(this.scene, this.camera);
             requestAnimationFrame(render);
@@ -130,7 +177,9 @@ export class Food {
             for (let i = 0; i < this.currentInstanceCount; i++) {
                 const foodItem = this.foodPositions[i];
                 foodItem.y += translationSpeed;
-                foodItem.x += this.getNoise(foodItem.x, foodItem.y, i);
+                if (foodItem.y > .1) {
+                    foodItem.x += this.getNoise(foodItem.x, foodItem.y, this.time);
+                }
                 const distanceToHead = new THREE.Vector2(foodItem.x, foodItem.y)
                     .distanceTo(new THREE.Vector2(S.sharedHead.x, S.sharedHead.y));
                 if (distanceToHead < 0.1 || foodItem.y > 1) {
@@ -172,6 +221,11 @@ export class Food {
         window.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.keyCode === 32 || event.key === ' ') {
                 this.addFood(Math.random());
+            }
+            // if enter key is pressed, run saveRecordToFile function
+            if (event.keyCode === 13 || event.key === 'Enter') {
+                //this.saveRecordToFile();
+                this.loadAndPlayFile('test.json')
             }
         });
     }

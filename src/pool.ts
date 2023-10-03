@@ -54,18 +54,18 @@ export class Pool {
 
     // Head + Tail
     private soul = null;
-    private soulScale = -0.018;
+    private soulScale = -0.016;
     private tail = null;
-    private tailScale = 0.025;
+    private tailScale = 0.021;
 
     // Spikes
     private spikeInstances: any = {};
-    private spikesScale = 0.018;
-    private spikeFrequency = 3;
-    private skip = 4;
+    private spikesScale = -0.02;
+    private spikeFrequency = 4;
+    private skip = 14;
 
     // Spine
-    private numBones = 120;
+    private numBones = 160;
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
 
@@ -117,6 +117,9 @@ export class Pool {
         this.noise.minFilter = THREE.LinearFilter;
         this.tiles.wrapS = THREE.RepeatWrapping;
         this.tiles.wrapT = THREE.RepeatWrapping;
+        //this.tiles.wrapS = THREE.ClampToEdgeWrapping;
+        //this.tiles.wrapT = THREE.ClampToEdgeWrapping;
+
         this.tiles.minFilter = THREE.NearestMipMapNearestFilter
 
         this.createSpine();
@@ -192,8 +195,8 @@ export class Pool {
 
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0, 0, 0);
         this.bloomPass.threshold = 0;
-        this.bloomPass.strength = 1.2;
-        this.bloomPass.radius = 1.0;
+        this.bloomPass.strength = .7;
+        this.bloomPass.radius = .6;
 
         this.bloomComposer = new EffectComposer(this.renderer);
         this.bloomComposer.renderToScreen = false;
@@ -261,7 +264,7 @@ export class Pool {
         const material = await this.shade();
         this.plane = new THREE.Mesh(geometry, material);
         this.plane.position.set(0.5, 0.5, 0);
-        this.plane.scale.set(1, 1, 1);
+        this.plane.scale.set(.9, .9, 1);
         this.scene.add(this.plane);
     }
 
@@ -382,7 +385,7 @@ export class Pool {
         });
         loader.load('/src/assets/@.obj', (obj: any) => {
             obj.position.set(.5, .5, -.2);
-            obj.rotation.set(0, 0, 0);
+            obj.rotation.set(.5, 0, 0);
             this.soul = obj;
             obj.scale.set(this.soulScale, this.soulScale, this.soulScale);
             obj.traverse(function (child: any) {
@@ -428,10 +431,10 @@ export class Pool {
     private async createSpikeInstances(): Promise<void> {
         const loader = new OBJLoader();
         const material = new THREE.MeshPhysicalMaterial({
-            roughness: .5,
+            roughness: .1,
             metalness: 1,
         });
-        loader.load('/src/assets/{}.obj', (obj: any) => {
+        loader.load('/src/assets/{{{.obj', (obj: any) => {
 
             obj.traverse((child: any) => {
                 if (child instanceof THREE.Mesh) {
