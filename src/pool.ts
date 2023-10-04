@@ -370,7 +370,6 @@ export class Pool {
         this.uniforms.u_moon.value.y = newY / 2;
         this.uniforms.u_moon.value.z = 1;
         this.moon = { x: newX, y: newY, z: 1 };
-        console.log(this.moon);
     }
 
     /* 
@@ -383,12 +382,12 @@ export class Pool {
     private W1: Fish;
     private W2: Fish;
     private async createWhiskers(): Promise<void> {
-        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, 0.15);
+        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, 0.1);
         this.W1 = whisker1Messanger;
         this.W1.birth();
         this.W1.live();
         this.scene.add(this.whisker1Segments);
-        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, -0.15);
+        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, -0.1);
         this.W2 = whisker2Messanger;
         this.W2.birth();
         this.W2.live();
@@ -412,8 +411,6 @@ export class Pool {
                 }
             }.bind(this));
 
-
-            console.log(obj)
             this.scene.add(obj);
 
             this.soul?.layers.enable(this.BLOOM_SCENE);
@@ -426,7 +423,7 @@ export class Pool {
     private async createTail(): Promise<void> {
         const loader = new OBJLoader();
         const material = new THREE.MeshPhysicalMaterial({
-            roughness: 0,
+            roughness: .2,
             metalness: 1,
         });
         loader.load('/src/assets/petal{}.obj', (obj: any) => {
@@ -466,6 +463,7 @@ export class Pool {
                     const position = new THREE.Vector3(0.5, 0.5, 0); // Set position to 0, 0, 0
                     const rotation = new THREE.Euler(0, 0, 0); // Set rotation to 0, 0, 0
                     const quaternion = new THREE.Quaternion().setFromEuler(rotation); // Convert Euler to Quaternion
+
                     for (let i = 0; i < this.numBones / this.spikeFrequency; i++) {
                         const matrix = new THREE.Matrix4();
                         matrix.compose(position, quaternion, scale);
@@ -521,6 +519,9 @@ export class Pool {
             for (let i = 0; i < this.targetPositions.length; i++) {
                 const targetPosition = this.targetPositions[i];
                 const targetRotation = this.targetRotations[i];
+                if (targetPosition.x === 0 && targetPosition.y === 0) {
+                    continue;
+                }
                 let linear_scale = this.spikesScale * -1;
                 if (i === 4) {
                     linear_scale = this.spikesScale * -1 + 0.005;
@@ -554,7 +555,9 @@ export class Pool {
     private drawSpikes(bones: any): void {
         if (this.spikeInstances) {
             for (let i = this.spikeFrequency; i < bones.length; i += this.spikeFrequency) {
-                if (i < this.skip) continue;
+                if (i < this.skip) {
+                    continue;
+                }
                 const instanceIndex = i / this.spikeFrequency;
                 const bone = bones[i];
                 this.position.set(
@@ -599,7 +602,7 @@ export class Pool {
                 this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
             }
             if (i === bones.length - 7 && this.tail) {
-                this.tail.position.set(positions[j], positions[j + 1], .25);
+                this.tail.position.set(positions[j], positions[j + 1], .1);
                 this.tail.rotation.set(0, 0, angle);
             }
         }
