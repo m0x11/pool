@@ -49,23 +49,23 @@ export class Pool {
     private noise = new THREE.TextureLoader().load('src/env/noise.png');
     private tiles = new THREE.TextureLoader().load('src/env/pool.png');
 
-    private newmouse = { x: 0, y: 0, z: 0 };
+    private moon = { x: 0, y: 0, z: 0 };
     private drop = { x: 0, y: 0 };
 
     // Head + Tail
     private soul = null;
     private soulScale = -0.016;
     private tail = null;
-    private tailScale = 0.021;
+    private tailScale = 0.026;
 
     // Spikes
     private spikeInstances: any = {};
-    private spikesScale = -0.02;
+    private spikesScale = -0.022;
     private spikeFrequency = 4;
     private skip = 14;
 
     // Spine
-    private numBones = 160;
+    private numBones = 180;
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
 
@@ -73,7 +73,7 @@ export class Pool {
     private lineGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.numBones + 1) * 3), 3));
     private lineSegments = new THREE.LineSegments(this.lineGeometry, this.lineMaterial);
 
-    private excitation = 700;
+    private excitation = 1000;
     private whisker1Material = new THREE.LineBasicMaterial({ color: 0xffffff });
     private whisker1Geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.excitation) * 3), 3));
     private whisker1Segments = new THREE.LineSegments(this.whisker1Geometry, this.whisker1Material);
@@ -92,7 +92,7 @@ export class Pool {
         u_buffer: { type: "t", value: this.bufferWrite.texture },
         u_texture: { type: "t", value: this.tiles },
         u_environment: { type: "t", value: this.env },
-        u_mouse: { type: "v3", value: new THREE.Vector3() },
+        u_moon: { type: "v3", value: new THREE.Vector3() },
         u_frame: { type: "i", value: -1. },
         u_renderpass: { type: 'b', value: false },
         u_drop: { type: 'v3', value: new THREE.Vector3() },
@@ -264,7 +264,7 @@ export class Pool {
         const material = await this.shade();
         this.plane = new THREE.Mesh(geometry, material);
         this.plane.position.set(0.5, 0.5, 0);
-        this.plane.scale.set(.9, .9, 1);
+        this.plane.scale.set(1, 1, 1);
         this.scene.add(this.plane);
     }
 
@@ -302,6 +302,8 @@ export class Pool {
             const leftCowl = this.leftCowl;
             const rightCowl = this.rightCowl;
             this.W1.illuminate(this.whisker1Geometry);
+            //this.whisker1Geometry.attributes.position.z = 0;
+            //this.whisker2Geometry.attributes.position.z = 0;
             if (!isNaN(leftCowl.x) && !isNaN(leftCowl.y)) {
                 this.W1.attach({ x: leftCowl.x, y: leftCowl.y });
             }
@@ -339,6 +341,7 @@ export class Pool {
     private addEventListeners(): void {
         window.addEventListener('resize', this.scale.bind(this));
         window.addEventListener('click', this.live.bind(this));
+        window.addEventListener('mousemove', this.mousemove.bind(this));
     }
 
     private drip = (x: number, y: number) => {
@@ -352,7 +355,22 @@ export class Pool {
             this.uniforms.u_drop.value.z = 0;
             this.drop = { x: 0, y: 0 };
             S.curDrop = { x: 0, y: 0 };
-        }, 100);
+        }, 80);
+    }
+
+    private mousemove = (e: MouseEvent) => {
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+        // scale by window size:
+
+
+        const newX = x * 2 - 1;
+        const newY = 1 - (y * 2 - 1);
+        this.uniforms.u_moon.value.x = newX / 2;
+        this.uniforms.u_moon.value.y = newY / 2;
+        this.uniforms.u_moon.value.z = 1;
+        this.moon = { x: newX, y: newY, z: 1 };
+        console.log(this.moon);
     }
 
     /* 
@@ -385,7 +403,7 @@ export class Pool {
         });
         loader.load('/src/assets/@.obj', (obj: any) => {
             obj.position.set(.5, .5, -.2);
-            obj.rotation.set(.5, 0, 0);
+            obj.rotation.set(1.5, 0, 0);
             this.soul = obj;
             obj.scale.set(this.soulScale, this.soulScale, this.soulScale);
             obj.traverse(function (child: any) {
@@ -434,7 +452,7 @@ export class Pool {
             roughness: .1,
             metalness: 1,
         });
-        loader.load('/src/assets/{{{.obj', (obj: any) => {
+        loader.load('/src/assets/{{.obj', (obj: any) => {
 
             obj.traverse((child: any) => {
                 if (child instanceof THREE.Mesh) {
@@ -504,13 +522,18 @@ export class Pool {
                 const targetPosition = this.targetPositions[i];
                 const targetRotation = this.targetRotations[i];
                 let linear_scale = this.spikesScale * -1;
-                if (i === 2) {
-                    linear_scale = this.spikesScale * -1 - 0.005;
-                    let leftmostPoint = this.getSpikeEdge(i, 23811);
+                if (i === 4) {
+                    linear_scale = this.spikesScale * -1 + 0.005;
+                    //let leftmostPoint = this.getSpikeEdge(i, 351);
+                    let leftmostPoint = this.getSpikeEdge(i, 18);
+
+
                     let leftmostPointScaled = this.toScreenPosition(leftmostPoint, this.camera, this.renderer.domElement);
                     this.leftCowl.x = leftmostPointScaled.x;
                     this.leftCowl.y = leftmostPointScaled.y;
-                    let rightmostPoint = this.getSpikeEdge(i, 16011);
+                    // needs z change
+                    //let rightmostPoint = this.getSpikeEdge(i, 7352);
+                    let rightmostPoint = this.getSpikeEdge(i, 7353);
                     let rightmostPointScaled = this.toScreenPosition(rightmostPoint, this.camera, this.renderer.domElement);
                     this.rightCowl.x = rightmostPointScaled.x;
                     this.rightCowl.y = rightmostPointScaled.y;
@@ -537,7 +560,7 @@ export class Pool {
                 this.position.set(
                     bone.origin.x / window.innerWidth,
                     (window.innerHeight - bone.origin.y) / window.innerHeight,
-                    0.2
+                    0.5 - 0.01 * instanceIndex
                 );
                 const prevBone = bones[i - 1];
                 const prevX = prevBone.origin.x / window.innerWidth;
@@ -575,8 +598,8 @@ export class Pool {
                 this.soul.position.set(positions[j], positions[j + 1], .5);
                 this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
             }
-            if (i === bones.length - 1 && this.tail) {
-                this.tail.position.set(positions[j], positions[j + 1], .5);
+            if (i === bones.length - 7 && this.tail) {
+                this.tail.position.set(positions[j], positions[j + 1], .25);
                 this.tail.rotation.set(0, 0, angle);
             }
         }

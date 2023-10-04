@@ -281,7 +281,7 @@ export class Fish {
         for (let i = 1; i < this.vertebrae; i++) {
 
             const j = this.vertebrae - i;
-            const angle = ((j / 16) ** 1.618) / 5.5;
+            const angle = ((j / 55) ** 1.618);
             const leader = { x: this.anatomy[i - 1].end.x, y: this.anatomy[i - 1].end.y };
             this.anatomy[i].origin.x = lerp(this.anatomy[i].origin.x, leader.x, this.anatomy[i].weight);
             this.anatomy[i].origin.y = lerp(this.anatomy[i].origin.y, leader.y, this.anatomy[i].weight);

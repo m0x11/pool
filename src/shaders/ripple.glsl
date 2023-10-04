@@ -9,6 +9,7 @@
   uniform bool u_renderpass;
   uniform int u_frame;
   uniform vec3 u_drop;
+  uniform vec3 u_moon;
   
   #define PI 3.141592653589793
   #define TAU 6.283185307179586
@@ -28,7 +29,7 @@
   const float sigma = float(samples) * 0.25;
   */
 
-    const float bias = .2;
+  const float bias = .2;
   const float scale = 10.;
   const float power = 10.1;
 
@@ -105,7 +106,6 @@
         shade = smoothstep(.02 + abs(sin(u_time*10.) * .1), .0, length(drop)); 
     }
 
-
     vec4 texcol = fragcolour;
 
     float d = shade * 2.;
@@ -165,7 +165,8 @@
     vec3 ray = normalize(vec3(uv, 1.));
 
     //vec3 lightPos = vec3(cos(u_time * .5 + 2.) * 2., 1. + sin(u_time * .5 + 2.) * 2., -3.);
-    vec3 lightPos = vec3(0., 0., -5.);
+    //vec3 lightPos = vec3(0., 0., -5.);
+    vec3 lightPos = vec3(u_moon.x, u_moon.y, -3.);
     vec3 normal = vec3(0., 0., -1);
 
     vec2 sampleDistance = vec2(.005, 0.);
@@ -266,7 +267,9 @@
       float distortion;
       vec4 reflections = renderPass(uv, distortion);
       
-      vec4 c = texture2D(u_texture, uv + distortion).rbra;
+      //vec4 c = texture2D(u_texture, uv + distortion).rbra;
+      // vec4 c = texture2D(u_texture, uv).rbra;
+      vec4 c = vec4(0.0, 0.0, 0.0, 1.0); 
       fragcolour = c * c * c * .4;
       fragcolour *= fragcolour; 
       fragcolour += (texture2D(u_buffer, sampleX+.03).x)*.1 - .1;
