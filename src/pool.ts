@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { Fish } from './inverse';
-//import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+
 import gsap from 'gsap';
 import S from './sharedState';
 
@@ -18,7 +18,6 @@ export class Pool {
     private camera: any = new THREE.OrthographicCamera(0, 1, 1, 0, 0.1, 1000);
     private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
-
     private renderScene: RenderPass = {} as RenderPass;
     private bloomComposer: EffectComposer = {} as EffectComposer;
     private finalComposer: EffectComposer = {} as EffectComposer;
@@ -26,20 +25,10 @@ export class Pool {
     private shaderPass: ShaderPass = {} as ShaderPass;
     private outputPass: OutputPass = {} as OutputPass;
 
-
     private BLOOM_SCENE = 1;
     private bloomLayer = new THREE.Layers();
     private darkMaterial = new THREE.MeshBasicMaterial({ color: "black" });
     private materials = {};
-
-
-    /*
-    private bloomPass: UnrealBloomPass;
-    private bloomComposer: EffectComposer;
-    private mixPass: ShaderPass;
-    //private outputPass: OutputPass;
-    private finalComposer: EffectComposer;
-*/
 
     private plane: THREE.Mesh = new THREE.Mesh();
     private bufferRead = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, { type: THREE.FloatType, minFilter: THREE.NearestMipMapNearestFilter });
@@ -55,6 +44,7 @@ export class Pool {
 
     // Head + Tail
     private soul = null;
+    private soulShadow = null;
     private soulScale = -0.016;
     private tail = null;
     private tailScale = 0.026;
@@ -119,13 +109,10 @@ export class Pool {
         this.noise.minFilter = THREE.LinearFilter;
         this.tiles.wrapS = THREE.RepeatWrapping;
         this.tiles.wrapT = THREE.RepeatWrapping;
-        //this.tiles.wrapS = THREE.ClampToEdgeWrapping;
-        //this.tiles.wrapT = THREE.ClampToEdgeWrapping;
 
         this.tiles.minFilter = THREE.NearestMipMapNearestFilter
-
-        this.createSpine();
         this.createSoul();
+        this.createSoulShadow();
         this.createTail();
         this.createSpikeInstances();
         this.addEventListeners();
@@ -190,13 +177,7 @@ export class Pool {
 
         this.scene.traverse(this.disposeMaterial.bind(this));
         this.bloomLayer.set(this.BLOOM_SCENE);
-
-        // this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        //this.renderer.toneMappingExposure = 1;
         this.renderScene = new RenderPass(this.scene, this.camera);
-
-
-
 
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0, 0, 0);
         this.bloomPass.threshold = 0;
@@ -207,10 +188,6 @@ export class Pool {
         this.bloomComposer.renderToScreen = false;
         this.bloomComposer.addPass(this.renderScene);
         this.bloomComposer.addPass(this.bloomPass);
-
-        //this.renderer.shadowMap.enabled = true;
-        //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        //this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         this.shaderPass = new ShaderPass(
             new THREE.ShaderMaterial({
@@ -308,9 +285,6 @@ export class Pool {
             const rightCowl = this.rightCowl;
             this.W1.illuminate(this.whisker1Geometry);
 
-            //this.whisker1Geometry.attributes.position.count = 0;
-            //this.whisker1Geometry.attributes.position.z = 0;
-            //this.whisker2Geometry.attributes.position.z = 0;
             if (!isNaN(leftCowl.x) && !isNaN(leftCowl.y)) {
                 this.W1.attach({ x: leftCowl.x, y: leftCowl.y });
             }
@@ -324,20 +298,15 @@ export class Pool {
 
             this.renderer.setRenderTarget(null);
             this.renderer.setClearAlpha(0.0);
-
-            //this.renderer.render(this.scene, this.camera);
             this.scene.traverse(this.darkenMaterial.bind(this));
 
-            //this.camera.layers.set(this.BLOOM_SCENE);
             this.bloomComposer.render();
-            //this.camera.layers.set(0);
             this.scene.traverse(this.restoreMaterial.bind(this));
 
             if ((S.curDrop.x !== 0 || S.curDrop.y !== 0) && this.drop != S.curDrop) {
                 this.drop = S.curDrop;
                 this.drip(this.drop.x, this.drop.y);
             }
-            //this.ENDOLITH.setInterest(S.closestFood);
 
             this.finalComposer.render();
             requestAnimationFrame(render);
@@ -368,9 +337,6 @@ export class Pool {
     private mousemove = (e: MouseEvent) => {
         const x = e.clientX / window.innerWidth;
         const y = e.clientY / window.innerHeight;
-        // scale by window size:
-
-
         const newX = x * 2 - 1;
         const newY = 1 - (y * 2 - 1);
         this.uniforms.u_moon.value.x = newX / 2;
@@ -382,10 +348,6 @@ export class Pool {
     /* 
         * FISH FUNCTIONS *
     */
-    private async createSpine(): Promise<void> {
-        //this.scene.add(this.lineSegments);
-    }
-
     private W1: Fish;
     private W2: Fish;
     private async createWhiskers(): Promise<void> {
@@ -417,14 +379,29 @@ export class Pool {
                     child.material = material;
                 }
             }.bind(this));
-
             this.scene.add(obj);
-
             this.soul?.layers.enable(this.BLOOM_SCENE);
             this.soul?.children[0].layers.enable(this.BLOOM_SCENE);
 
         });
+    }
 
+    private async createSoulShadow(): Promise<void> {
+        const loader = new THREE.TextureLoader();
+
+        loader.load('src/env/@s.png', (texture) => {
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true
+            });
+
+            const geometry = new THREE.PlaneGeometry(.15, .15);
+            const plane = new THREE.Mesh(geometry, material);
+
+            plane.position.set(0.8, 0.8, .9);
+            this.soulShadow = plane;
+            this.scene.add(plane);
+        });
     }
 
     private async createTail(): Promise<void> {
@@ -437,7 +414,6 @@ export class Pool {
             obj.position.set(.5, .5, -.2);
             obj.rotation.set(0, 0, 0);
             this.tail = obj;
-            //this.tail?.layers.set(0);
             obj.scale.set(this.tailScale, this.tailScale, this.tailScale);
             obj.traverse(function (child: any) {
                 if (child.isMesh) {
@@ -532,15 +508,10 @@ export class Pool {
                 let linear_scale = this.spikesScale * -1;
                 if (i === 4) {
                     linear_scale = this.spikesScale * -1 + 0.005;
-                    //let leftmostPoint = this.getSpikeEdge(i, 351);
                     let leftmostPoint = this.getSpikeEdge(i, 18);
-
-
                     let leftmostPointScaled = this.toScreenPosition(leftmostPoint, this.camera, this.renderer.domElement);
                     this.leftCowl.x = leftmostPointScaled.x;
                     this.leftCowl.y = leftmostPointScaled.y;
-                    // needs z change
-                    //let rightmostPoint = this.getSpikeEdge(i, 7352);
                     let rightmostPoint = this.getSpikeEdge(i, 7353);
                     let rightmostPointScaled = this.toScreenPosition(rightmostPoint, this.camera, this.renderer.domElement);
                     this.rightCowl.x = rightmostPointScaled.x;
@@ -607,6 +578,8 @@ export class Pool {
             if (i === 1 && this.soul) {
                 this.soul.position.set(positions[j], positions[j + 1], .5);
                 this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
+                this.soulShadow.position.set(positions[j], positions[j + 1], .4);
+                this.soulShadow.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
             }
             if (i === bones.length - 7 && this.tail) {
                 this.tail.position.set(positions[j], positions[j + 1], .1);
