@@ -16,6 +16,8 @@
     Angular Momentum
 */
 
+// make anetena noise inversely proportional to speed.
+
 declare const SimplexNoise: any;
 const PI = 3.14159265358979;
 const simplex = new SimplexNoise();
@@ -47,7 +49,7 @@ export class Bone {
 
     follow(leader: Point, lifespan: number, velocity: number, angleOffset: number = 0.0) {
 
-        const noiseRatio = 0.05 * (velocity / 100);
+        const noiseRatio = 0.5 * (1 - (velocity / 1000));
 
         //const noiseRatio = 0.1;
 
@@ -89,7 +91,7 @@ export class Bone {
         const dy = point2.y - point1.y;
         //const angle = Math.atan2(dy, dx) + noise + angleOffset;
         //const angle = Math.atan2(dy, dx) + angleOffset;
-        let angle = Math.atan2(dy, dx) + angleOffset //+ noise;
+        let angle = Math.atan2(dy, dx) + angleOffset + noise;
         const x = point2.x - Math.cos(angle) * distance;
         const y = point2.y - Math.sin(angle) * distance;
         return { x: x, y: y };

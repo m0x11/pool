@@ -7,6 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import gsap from 'gsap';
 import S from './sharedState';
 
 type Point = { x: number, y: number };
@@ -69,17 +70,18 @@ export class Pool {
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
 
-    private lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
     private lineGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.numBones + 1) * 3), 3));
-    private lineSegments = new THREE.LineSegments(this.lineGeometry, this.lineMaterial);
 
     private excitation = 1000;
+    private currentLength = 0;
     private whisker1Material = new THREE.LineBasicMaterial({ color: 0xffffff });
     private whisker1Geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.excitation) * 3), 3));
+    //private whisker1Geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.vertices, 3));
     private whisker1Segments = new THREE.LineSegments(this.whisker1Geometry, this.whisker1Material);
 
     private whisker2Material = new THREE.LineBasicMaterial({ color: 0xffffff });
     private whisker2Geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.excitation) * 3), 3));
+    //private whisker2Geometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(this.vertices, 3));
     private whisker2Segments = new THREE.LineSegments(this.whisker2Geometry, this.whisker2Material);
     private aspect = window.innerWidth / window.innerHeight;
 
@@ -130,10 +132,12 @@ export class Pool {
         this.createWhiskers();
 
         const terrarium = this.renderer.domElement;
-        const fish0x0000 = new Fish({ x: 0, y: 0 }, this.numBones, terrarium, 6, 1, 1, 0);
+        const fish0x0000 = new Fish({ x: 0, y: 0 }, this.numBones, terrarium, 6, 0, 1, 0);
         this.ENDOLITH = fish0x0000;
         fish0x0000.birth();
         fish0x0000.sleep();
+        this.whisker1Geometry.setDrawRange(0, 0);
+        this.whisker2Geometry.setDrawRange(0, 0);
 
         container.appendChild(this.renderer.domElement);
         this.initComposer();
@@ -144,6 +148,7 @@ export class Pool {
     private live(): void {
         this.ENDOLITH.live();
         this.sleeping = false;
+        this.unfurl();
     }
 
     /* 
@@ -302,6 +307,8 @@ export class Pool {
             const leftCowl = this.leftCowl;
             const rightCowl = this.rightCowl;
             this.W1.illuminate(this.whisker1Geometry);
+
+            //this.whisker1Geometry.attributes.position.count = 0;
             //this.whisker1Geometry.attributes.position.z = 0;
             //this.whisker2Geometry.attributes.position.z = 0;
             if (!isNaN(leftCowl.x) && !isNaN(leftCowl.y)) {
@@ -382,12 +389,12 @@ export class Pool {
     private W1: Fish;
     private W2: Fish;
     private async createWhiskers(): Promise<void> {
-        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, 0.1);
+        const whisker1Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, 0.15);
         this.W1 = whisker1Messanger;
         this.W1.birth();
         this.W1.live();
         this.scene.add(this.whisker1Segments);
-        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, -0.1);
+        const whisker2Messanger = new Fish({ x: 0, y: 0 }, this.excitation, this.renderer.domElement, 1, 0, 1, -0.15);
         this.W2 = whisker2Messanger;
         this.W2.birth();
         this.W2.live();
@@ -607,6 +614,20 @@ export class Pool {
             }
         }
         this.lineGeometry.getAttribute('position').needsUpdate = true;
+    }
+
+    private unfurl(): void {
+        gsap.to(this, {
+            duration: 8,  // Adjust the duration as needed
+            currentLength: this.excitation,
+            onUpdate: () => {
+                this.whisker1Geometry.setDrawRange(0, this.currentLength);
+                this.whisker1Geometry.attributes.position.needsUpdate = true;
+                this.whisker2Geometry.setDrawRange(0, this.currentLength);
+                this.whisker2Geometry.attributes.position.needsUpdate = true;
+            }
+
+        });
     }
 }
 

@@ -13,6 +13,7 @@
     "vite": "^4.4.5"
   },
   "dependencies": {
+    "gsap": "^3.12.2",
     "simplex-noise": "^4.0.1",
     "three": "^0.156.1"
   }
