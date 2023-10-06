@@ -16,7 +16,7 @@ export class Pool {
 
     private scene: THREE.Scene = new THREE.Scene();
     private camera: any = new THREE.OrthographicCamera(0, 1, 1, 0, 0.1, 1000);
-    private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ alpha: false, antialias: true });
 
     private renderScene: RenderPass = {} as RenderPass;
     private bloomComposer: EffectComposer = {} as EffectComposer;
@@ -54,6 +54,8 @@ export class Pool {
     private spikesScale = -0.022;
     private spikeFrequency = 4;
     private skip = 14;
+
+    private spikeShadowInstances: any = {};
 
     // Spine
     private numBones = 180;
@@ -115,6 +117,7 @@ export class Pool {
         this.createSoulShadow();
         this.createTail();
         this.createSpikeInstances();
+        this.createSpikeShadowInstances();
         this.addEventListeners();
         this.createWhiskers();
 
@@ -388,18 +391,17 @@ export class Pool {
 
     private async createSoulShadow(): Promise<void> {
         const loader = new THREE.TextureLoader();
-
-        loader.load('src/env/@s.png', (texture) => {
+        loader.load('src/env/@black.png', (texture) => {
             const material = new THREE.MeshBasicMaterial({
                 map: texture,
-                transparent: true
+                transparent: true,
             });
-
-            const geometry = new THREE.PlaneGeometry(.15, .15);
+            //material.blending = THREE.AdditiveBlending;
+            const geometry = new THREE.PlaneGeometry(.17, .17);
             const plane = new THREE.Mesh(geometry, material);
-
             plane.position.set(0.8, 0.8, .9);
             this.soulShadow = plane;
+            this.soulShadow.layers.enable(this.BLOOM_SCENE);
             this.scene.add(plane);
         });
     }
@@ -440,7 +442,7 @@ export class Pool {
                     this.spikeInstances = new THREE.InstancedMesh(
                         geometry,
                         material,
-                        this.numBones / this.spikeFrequency// Here, 'this' refers to the instance of the class
+                        this.numBones / this.spikeFrequency
                     );
                     const scale = new THREE.Vector3(this.spikesScale); // Scale factor of 2
                     const position = new THREE.Vector3(0.5, 0.5, 0); // Set position to 0, 0, 0
@@ -464,6 +466,34 @@ export class Pool {
                 console.error('An error occurred:', error);
             }
         );
+    }
+
+    private async createSpikeShadowInstances(): Promise<void> {
+        const loader = new THREE.TextureLoader();
+        loader.load('src/env/{y.png', (texture) => {
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+            });
+            const geometry = new THREE.PlaneGeometry(.17, .17);
+
+            this.spikeShadowInstances = new THREE.InstancedMesh(
+                geometry,
+                material,
+                this.numBones / this.spikeFrequency
+            );
+            const scale = new THREE.Vector3(1); // Scale factor of 2
+            const position = new THREE.Vector3(0.5, 0.5, 0); // Set position to 0, 0, 0
+            const rotation = new THREE.Euler(0, 0, 0); // Set rotation to 0, 0, 0
+            const quaternion = new THREE.Quaternion().setFromEuler(rotation); // Convert Euler to Quaternion
+            for (let i = 0; i < this.numBones / this.spikeFrequency; i++) {
+                const matrix = new THREE.Matrix4();
+                matrix.compose(position, quaternion, scale);
+                this.spikeShadowInstances.setMatrixAt(i, matrix);
+            }
+            this.scene.add(this.spikeShadowInstances);
+            this.spikeShadowInstances.layers.enable(this.BLOOM_SCENE);
+        });
     }
 
     private instanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
@@ -578,7 +608,7 @@ export class Pool {
             if (i === 1 && this.soul) {
                 this.soul.position.set(positions[j], positions[j + 1], .5);
                 this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
-                this.soulShadow.position.set(positions[j], positions[j + 1], .4);
+                this.soulShadow.position.set(positions[j], positions[j + 1], .49);
                 this.soulShadow.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
             }
             if (i === bones.length - 7 && this.tail) {
