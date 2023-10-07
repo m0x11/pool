@@ -285,7 +285,7 @@ export class Fish {
         for (let i = 1; i < this.vertebrae; i++) {
 
             const j = this.vertebrae - i;
-            const angle = ((j / 55) ** 1.618);
+            const angle = (((j + 0) / 104) ** 2.418 + (j / 64));
             const leader = { x: this.anatomy[i - 1].end.x, y: this.anatomy[i - 1].end.y };
             this.anatomy[i].origin.x = lerp(this.anatomy[i].origin.x, leader.x, this.anatomy[i].weight);
             this.anatomy[i].origin.y = lerp(this.anatomy[i].origin.y, leader.y, this.anatomy[i].weight);
@@ -296,14 +296,14 @@ export class Fish {
     }
 
     breathe() {
-        this.cycles += 0.25;
+        this.cycles += 0.2;
         // types: 
         // 1. expand and contract segments
         // 2. expand and contract segments, but with a delay
         // 3. expand and contract fins (pool)
         // 4. light and dark (pool)
 
-        const factor = Math.sin(this.cycles / 10) / 100
+        const factor = Math.sin(this.cycles / 10) / 80
         for (let i = 1; i < this.vertebrae; i++) {
             const leader = { x: this.anatomy[i - 1].end.x, y: this.anatomy[i - 1].end.y };
             this.anatomy[i].origin.x = lerp(this.anatomy[i].origin.x, leader.x, this.anatomy[i].weight);

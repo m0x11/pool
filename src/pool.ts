@@ -58,7 +58,7 @@ export class Pool {
     private spikeShadowInstances: any = {};
 
     // Spine
-    private numBones = 200;
+    private numBones = 216;
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private shadowTargetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
@@ -95,7 +95,7 @@ export class Pool {
 
     private leftCowl: Point = { x: 0, y: 0 };
     private rightCowl: Point = { x: 0, y: 0 };
-    private sleeping = true;
+    private sleeping = false;
 
     // Birth
     private ENDOLITH: Fish;
@@ -138,9 +138,8 @@ export class Pool {
 
     private live(): void {
         this.ENDOLITH.live();
-        this.sleeping = false;
-        this.unfurl();
     }
+
 
     /* 
        * SCENE FUNCTIONS *
@@ -329,6 +328,27 @@ export class Pool {
                 this.leave();
             }
         });
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            // if enter key is pressed, run saveRecordToFile function
+            if (event.key === 'u') {
+                //this.saveRecordToFile();
+                this.unfurl();
+            }
+        });
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            // if enter key is pressed, run saveRecordToFile function
+            if (event.key === 'a') {
+                //this.saveRecordToFile();
+                this.sleeping = false;
+            }
+        });
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            // if enter key is pressed, run saveRecordToFile function
+            if (event.key === 's') {
+                //this.saveRecordToFile();
+                this.sleeping = true;
+            }
+        });
         //window.addEventListener('mousemove', this.mousemove.bind(this));
     }
 
@@ -400,7 +420,7 @@ export class Pool {
         });
         loader.load('/src/assets/@.obj', (obj: any) => {
             obj.position.set(.5, .5, -.2);
-            obj.rotation.set(1.5, 0, 0);
+            obj.rotation.set(.5, 0, 0);
             this.soul = obj;
             obj.scale.set(this.soulScale, this.soulScale, this.soulScale);
             obj.traverse(function (child: any) {
@@ -647,11 +667,18 @@ export class Pool {
             const deltaX = positions[j] - prevX;
             const deltaY = positions[j + 1] - prevY;
             const angle = Math.atan2(deltaY, deltaX);
+
             if (i === 1 && this.soul) {
+                let finalAngle = 0;
+                if (angle === 0) {
+                    finalAngle = Math.PI / 2;
+                } else {
+                    finalAngle = angle - (Math.PI / 2 + 0.1);
+                }
                 this.soul.position.set(positions[j], positions[j + 1], .85);
-                this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
+                this.soul.rotation.set(0, 0, finalAngle);
                 this.soulShadow.position.set(positions[j], positions[j + 1], .8);
-                this.soulShadow.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
+                this.soulShadow.rotation.set(0, 0, finalAngle);
             }
             if (i === bones.length - 7 && this.tail) {
                 this.tail.position.set(positions[j], positions[j + 1], .1);
