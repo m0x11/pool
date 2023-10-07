@@ -299,6 +299,7 @@ export class Pool {
             if (this.sleeping) {
                 this.ENDOLITH.breathe();
             }
+            this.moonSoul();
 
             this.renderer.setRenderTarget(null);
             this.renderer.setClearAlpha(0.0);
@@ -321,7 +322,18 @@ export class Pool {
     private addEventListeners(): void {
         window.addEventListener('resize', this.scale.bind(this));
         window.addEventListener('click', this.live.bind(this));
-        window.addEventListener('mousemove', this.mousemove.bind(this));
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            // if enter key is pressed, run saveRecordToFile function
+            if (event.key === 'l') {
+                //this.saveRecordToFile();
+                this.leave();
+            }
+        });
+        //window.addEventListener('mousemove', this.mousemove.bind(this));
+    }
+
+    private leave(): void {
+        this.ENDOLITH.leave();
     }
 
     private drip = (x: number, y: number) => {
@@ -338,11 +350,24 @@ export class Pool {
         }, 80);
     }
 
+    /*
     private mousemove = (e: MouseEvent) => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-        const newX = x * 2 - 1;
-        const newY = 1 - (y * 2 - 1);
+        const x = e.clientX * 8 / window.innerWidth;
+        const y = e.clientY * 8 / window.innerHeight;
+        let newX = x * 2 - 1;
+        let newY = 1 - (y * 2 - 1);
+
+        this.uniforms.u_moon.value.x = newX / 2;
+        this.uniforms.u_moon.value.y = newY / 2;
+        this.uniforms.u_moon.value.z = 1;
+        this.moon = { x: newX, y: newY, z: 1 };
+    }
+    */
+    private moonSoul = () => {
+        let newX = S.sharedHead.x * 2 - 1;
+        let newY = S.sharedHead.y * 2 - 1;
+
+
         this.uniforms.u_moon.value.x = newX / 2;
         this.uniforms.u_moon.value.y = newY / 2;
         this.uniforms.u_moon.value.z = 1;

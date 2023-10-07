@@ -113,6 +113,7 @@ export class Fish {
     cowlLeft: Point;
     tail: Point;
     cycles: number;
+    leaving: boolean;
 
     constructor(public origin: Point, public vertebrae: number, public terrarium: HTMLCanvasElement, public proportions: number, public seed: number = 0, public weight: number = 1, public angleOffset: number = 0.0) {
         this.origin = origin;
@@ -137,6 +138,7 @@ export class Fish {
         this.strength = 0.05;
         this.weight = weight;
         this.cycles = 0;
+        this.leaving = false;
         document.addEventListener('mousemove', this.handleMouseMove.bind(this));
     }
 
@@ -363,7 +365,16 @@ export class Fish {
     }
 
     handleMouseMove(event: MouseEvent) {
-        this.interest = { x: event.clientX, y: event.clientY };
+        if (!this.leaving) {
+            this.interest = { x: event.clientX, y: event.clientY };
+        } else {
+            this.interest = { x: event.clientX * 5, y: event.clientY * 5 };
+        }
+
+    }
+
+    leave() {
+        this.leaving = true;
     }
 
     live() {
