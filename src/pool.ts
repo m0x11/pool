@@ -58,8 +58,9 @@ export class Pool {
     private spikeShadowInstances: any = {};
 
     // Spine
-    private numBones = 180;
+    private numBones = 200;
     private targetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
+    private shadowTargetPositions: THREE.Vector3[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Vector3());
     private targetRotations: THREE.Quaternion[] = Array.from({ length: this.numBones / this.spikeFrequency }, () => new THREE.Quaternion());
 
     private lineGeometry = new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array((this.numBones + 1) * 3), 3));
@@ -391,7 +392,7 @@ export class Pool {
 
     private async createSoulShadow(): Promise<void> {
         const loader = new THREE.TextureLoader();
-        loader.load('src/env/@black.png', (texture) => {
+        loader.load('src/env/@line.png', (texture) => {
             const material = new THREE.MeshBasicMaterial({
                 map: texture,
                 transparent: true,
@@ -470,19 +471,22 @@ export class Pool {
 
     private async createSpikeShadowInstances(): Promise<void> {
         const loader = new THREE.TextureLoader();
-        loader.load('src/env/{y.png', (texture) => {
+        loader.load('src/env/{ssmall.png', (texture) => {
             const material = new THREE.MeshBasicMaterial({
                 map: texture,
                 transparent: true,
+
             });
-            const geometry = new THREE.PlaneGeometry(.17, .17);
+            //material.blending = THREE.AdditiveBlending;
+            material.depthWrite = false;
+            const geometry = new THREE.PlaneGeometry(.2, .2);
 
             this.spikeShadowInstances = new THREE.InstancedMesh(
                 geometry,
                 material,
                 this.numBones / this.spikeFrequency
             );
-            const scale = new THREE.Vector3(1); // Scale factor of 2
+            const scale = new THREE.Vector3(1);
             const position = new THREE.Vector3(0.5, 0.5, 0); // Set position to 0, 0, 0
             const rotation = new THREE.Euler(0, 0, 0); // Set rotation to 0, 0, 0
             const quaternion = new THREE.Quaternion().setFromEuler(rotation); // Convert Euler to Quaternion
@@ -525,7 +529,9 @@ export class Pool {
     }
 
     private spikeInstanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
+    private spikeShadowInstanceMatrix: THREE.Matrix4 = new THREE.Matrix4();
     private currentScale: THREE.Vector3 = new THREE.Vector3();
+    private shadowScale: THREE.Vector3 = new THREE.Vector3(1, 1, 1);
 
     private updateSpikeInstances(): void {
         if (this.spikeInstances && this.spikeInstances.count > 0) {
@@ -552,11 +558,16 @@ export class Pool {
                 this.spikeInstances.setMatrixAt(i, this.spikeInstanceMatrix);
                 this.spikeInstances.instanceMatrix.needsUpdate = true;
 
+                const shadowTargetPosition = this.shadowTargetPositions[i];
+                this.spikeShadowInstanceMatrix.compose(shadowTargetPosition, targetRotation, this.shadowScale);
+                this.spikeShadowInstances.setMatrixAt(i, this.spikeShadowInstanceMatrix);
+                this.spikeShadowInstances.instanceMatrix.needsUpdate = true;
             }
         }
     }
 
     private position: THREE.Vector3 = new THREE.Vector3();
+    private shadowPosition = new THREE.Vector3();
     private quaternion: THREE.Quaternion = new THREE.Quaternion();
     private axis: THREE.Vector3 = new THREE.Vector3(0, 0, 1);
 
@@ -571,7 +582,12 @@ export class Pool {
                 this.position.set(
                     bone.origin.x / window.innerWidth,
                     (window.innerHeight - bone.origin.y) / window.innerHeight,
-                    0.5 - 0.01 * instanceIndex
+                    0.8 - 0.013 * instanceIndex
+                );
+                this.shadowPosition.set(
+                    bone.origin.x / window.innerWidth,
+                    (window.innerHeight - bone.origin.y) / window.innerHeight,
+                    0.75 - 0.013 * instanceIndex
                 );
                 const prevBone = bones[i - 1];
                 const prevX = prevBone.origin.x / window.innerWidth;
@@ -581,6 +597,7 @@ export class Pool {
                 let angle = Math.atan2(deltaY, deltaX)
                 this.quaternion.setFromAxisAngle(this.axis, angle + Math.PI);
                 this.targetPositions[instanceIndex].copy(this.position);
+                this.shadowTargetPositions[instanceIndex].copy(this.shadowPosition);
                 this.targetRotations[instanceIndex].copy(this.quaternion);
             }
             this.updateSpikeInstances();
@@ -606,9 +623,9 @@ export class Pool {
             const deltaY = positions[j + 1] - prevY;
             const angle = Math.atan2(deltaY, deltaX);
             if (i === 1 && this.soul) {
-                this.soul.position.set(positions[j], positions[j + 1], .5);
+                this.soul.position.set(positions[j], positions[j + 1], .85);
                 this.soul.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
-                this.soulShadow.position.set(positions[j], positions[j + 1], .49);
+                this.soulShadow.position.set(positions[j], positions[j + 1], .8);
                 this.soulShadow.rotation.set(0, 0, angle - (Math.PI / 2 + 0.1));
             }
             if (i === bones.length - 7 && this.tail) {
