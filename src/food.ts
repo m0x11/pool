@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { AsciiEffect } from 'three/addons/effects/AsciiEffect.js';
+import { Midi } from '@tonejs/midi';
 import S from './sharedState';
 import sharedState from './sharedState';
 declare const SimplexNoise: any;
@@ -14,7 +15,7 @@ export class Food {
     private scene: THREE.Scene = new THREE.Scene();
     private camera: any = new THREE.OrthographicCamera(0, 1, 1, 0, 0.1, 1000);
     private renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    private effect = new AsciiEffect(this.renderer, ' .:-+*=%@&?', { invert: true, resolution: .2, strResolution: 'low' });
+    private effect = new AsciiEffect(this.renderer, ' +=*/', { invert: true, resolution: .18, strResolution: 'low' });
     private foodPositions: FoodPosition[] = [];
     private foodInstances: THREE.InstancedMesh = new THREE.InstancedMesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial(), 0);
     private maxInstanceCount = 100;
@@ -56,18 +57,18 @@ export class Food {
     }
 
     private onMIDIMessage(event) {
-        if (event.data[0] === 144 || event.data[0] === 128 && event.data[2] !== 0) {
+        if ((event.data[0] === 144 || event.data[0] === 128) && event.data[2] !== 0) {
             const scaledNote = (event.data[1] - 40) / 66;
             console.log(event)
             this.record.push({
                 note: event.data[1],
                 timestamp: event.timeStamp
             });
-
             this.addFood(scaledNote);
         }
     }
 
+    /*
     async loadAndPlayFile(path) {
         try {
             const response = await fetch(path);
@@ -77,6 +78,39 @@ export class Food {
 
             const recordedData = await response.json();
             this.playback(recordedData);
+        } catch (error) {
+            console.error("There was a problem with the fetch operation:", error.message);
+        }
+    }
+    */
+
+    async loadAndPlayFile(path: string) {
+        try {
+            const response = await fetch(path);
+            if (!response.ok) {
+                throw new Error("Network response was not ok.");
+            }
+
+            const arrayBuffer = await response.arrayBuffer(); // Fetch MIDI file as an ArrayBuffer
+            const midi = new Midi(arrayBuffer); // Parse the MIDI data
+
+
+            // Extract note data
+            const notesData = [];
+
+            midi.tracks.forEach(track => {
+                track.notes.forEach(note => {
+                    console.log(note)
+                    const scaledNote = (note.midi - 40) / 66;
+                    notesData.push({
+                        note: note.midi,
+                        timestamp: note.time * 1000, // Convert from seconds to milliseconds
+                    });
+                    this.addFood(scaledNote);
+                });
+            });
+
+            this.playback(notesData);
         } catch (error) {
             console.error("There was a problem with the fetch operation:", error.message);
         }
@@ -92,21 +126,7 @@ export class Food {
         });
     }
 
-    async saveRecordToFile() {
-        console.log("SAVING RECORD")
-        const jsonData = JSON.stringify(this.record);
 
-        // Create a blob from the JSON string
-        const blob = new Blob([jsonData], { type: 'application/json' });
-
-        // Create a link element to facilitate the download
-        const a = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        a.href = url;
-        a.download = 'midi-record.json';
-        a.click();
-        URL.revokeObjectURL(url); // Free up memory from the object URL
-    }
 
     private onMIDIFailure() {
         console.error('Could not access your MIDI devices.');
@@ -148,9 +168,9 @@ export class Food {
         const seedC = 0.80;
 
         const noise = simplex.noise3D(
-            (y + time) * seedA,
-            (y + time) * seedB,
-            (y + time) * seedC,
+            (y + time * 2.7) * seedA,
+            (y + time * 2.7) * seedB,
+            (y + time * 2.7) * seedC,
         ) * 0.1;
 
         return noise * noiseRatio;
@@ -225,7 +245,7 @@ export class Food {
             // if enter key is pressed, run saveRecordToFile function
             if (event.keyCode === 13 || event.key === 'Enter') {
                 //this.saveRecordToFile();
-                this.loadAndPlayFile('test.json')
+                this.loadAndPlayFile('src/assets/@3.mid');
             }
         });
     }

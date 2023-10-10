@@ -332,7 +332,7 @@ export class Pool {
             // if enter key is pressed, run saveRecordToFile function
             if (event.key === 'u') {
                 //this.saveRecordToFile();
-                this.unfurl();
+                //this.unfurl();
             }
         });
         window.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -410,6 +410,7 @@ export class Pool {
         this.W2.birth();
         this.W2.live();
         this.scene.add(this.whisker2Segments);
+        this.unfurl();
     }
 
     private async createSoul(): Promise<void> {
