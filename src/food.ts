@@ -64,6 +64,7 @@ export class Food {
                 note: event.data[1],
                 timestamp: event.timeStamp
             });
+            console.log(scaledNote)
             this.addFood(scaledNote);
         }
     }
@@ -97,16 +98,18 @@ export class Food {
 
             // Extract note data
             const notesData = [];
-
             midi.tracks.forEach(track => {
                 track.notes.forEach(note => {
-                    console.log(note)
-                    const scaledNote = (note.midi - 40) / 66;
+
+
                     notesData.push({
                         note: note.midi,
                         timestamp: note.time * 1000, // Convert from seconds to milliseconds
                     });
-                    this.addFood(scaledNote);
+
+
+
+
                 });
             });
 
@@ -121,7 +124,7 @@ export class Food {
 
         recordedData.forEach(data => {
             setTimeout(() => {
-                this.addFood((data.note - 40) / 66);
+                this.addFood((data.note - 40) / 68);
             }, data.timestamp - initialTimestamp);
         });
     }
@@ -171,7 +174,7 @@ export class Food {
             (y + time * 2.7) * seedA,
             (y + time * 2.7) * seedB,
             (y + time * 2.7) * seedC,
-        ) * 0.1;
+        ) * 0.08;
 
         return noise * noiseRatio;
     }
@@ -214,7 +217,7 @@ export class Food {
                     closestFoodIndex = aliveIndex;
                 }
                 dummyObject.position.set(foodItem.x, foodItem.y, 0);
-                dummyObject.scale.set(0.01, 0.01, 0.01);
+                dummyObject.scale.set(0.008, 0.008, 0.008);
                 dummyObject.updateMatrix();
                 this.foodInstances.setMatrixAt(aliveIndex, dummyObject.matrix);
                 if (aliveIndex !== i) {
@@ -278,7 +281,7 @@ export class Food {
         if (this.currentInstanceCount < this.maxInstanceCount) {
             const dummyObject = new THREE.Object3D();
             dummyObject.position.set(xPosition, 0, 0);
-            dummyObject.scale.set(0.05, 0.03, 0.05);
+            dummyObject.scale.set(0.04, 0.025, 0.04);
             dummyObject.updateMatrix();
             this.foodInstances.setMatrixAt(this.currentInstanceCount, dummyObject.matrix);
             this.foodPositions.push({ x: xPosition, y: 0 });
