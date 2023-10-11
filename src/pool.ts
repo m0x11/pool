@@ -184,7 +184,10 @@ export class Pool {
 
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0, 0, 0);
         this.bloomPass.threshold = 0;
-        this.bloomPass.strength = .7;
+        //this.bloomPass.strength = .7;
+        //this.bloomPass.radius = .6;
+
+        this.bloomPass.strength = .4;
         this.bloomPass.radius = .6;
 
         this.bloomComposer = new EffectComposer(this.renderer);
